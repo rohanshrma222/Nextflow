@@ -1,6 +1,7 @@
 'use client';
 
 import { Undo2, Redo2, Command } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 
 function ControlButton({ 
@@ -10,7 +11,7 @@ function ControlButton({
   label, 
   keys 
 }: { 
-  icon: any, 
+  icon: LucideIcon, 
   onClick: () => void, 
   disabled: boolean, 
   label: string, 

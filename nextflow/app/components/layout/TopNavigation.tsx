@@ -1,10 +1,12 @@
 'use client';
 
+import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/nextjs';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { Layers, ChevronDown, Moon, Share, Wand2, Frame, Import} from 'lucide-react';
+import { ChevronDown, Moon, Wand2 } from 'lucide-react';
 
 export function TopNavigation() {
   const { workflowName, setWorkflowName } = useWorkflowStore();
+  const { isSignedIn } = useAuth();
 
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-50 pointer-events-none">
@@ -56,6 +58,33 @@ export function TopNavigation() {
           <Wand2 size={13} />
           Turn workflow into app
         </button>
+
+        {!isSignedIn && (
+          <>
+            <SignInButton mode="modal">
+              <button type="button" className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#f0f0f0] text-[12px] font-[500] transition-colors">
+                Sign in
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button type="button" className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#f0f0f0] hover:bg-white border border-white/10 text-[#0a0a0a] text-[12px] font-[600] transition-colors">
+                Create account
+              </button>
+            </SignUpButton>
+          </>
+        )}
+
+        {isSignedIn && (
+          <div className="flex items-center rounded-full border border-white/10 bg-[#1a1a1a] px-1 py-1">
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: 'h-7 w-7',
+                },
+              }}
+            />
+          </div>
+        )}
 
         {/* History / More button */}
         <button 

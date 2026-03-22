@@ -9,12 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.0.6",
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "dotenv": "^17.3.1",
     "lucide-react": "^0.577.0",
     "next": "16.2.1",
+    "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "reactflow": "^11.11.4",
+    "svix": "^1.89.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

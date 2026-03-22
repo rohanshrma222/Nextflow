@@ -4,18 +4,32 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id
+  email        String?       @unique
+  firstName    String?
+  lastName     String?
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  workflowRuns WorkflowRun[]
 }
 
 model WorkflowRun {
   id          Int      @id @default(autoincrement())
+  userId      String
   timestamp   DateTime @default(now())
   scope       String
   scopeLabel  String
   status      String
   durationMs  Int
 
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   nodeResults NodeResult[]
+
+  @@index([userId, timestamp])
 }
 
 model NodeResult {
