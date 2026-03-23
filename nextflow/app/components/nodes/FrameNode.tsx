@@ -5,7 +5,8 @@ import { NodeHeader } from '@/components/ui/NodeHeader';
 import { NodeField } from '@/components/ui/NodeField';
 import { Button } from '@/components/ui/Button';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { simulateNodeRun } from '@/lib/utils';
+import { triggerTask, pollTaskResult } from '@/lib/triggerClient';
+import { resolveNodeInputs } from '@/lib/resolveNodeInputs';
 import { cn } from '@/lib/cn';
 
 export function FrameNode({ id, data, selected }: NodeProps) {
@@ -13,21 +14,60 @@ export function FrameNode({ id, data, selected }: NodeProps) {
   const isRunning = data.status === 'running';
 
   async function handleRun() {
+    const startTime = Date.now();
+
     updateNodeStatus(id, 'running');
+
     try {
-      const { output, durationMs } = await simulateNodeRun('frame');
-      updateNodeData(id, { output, status: 'success' });
-      updateNodeStatus(id, 'success');
+      const { nodes, edges } = useWorkflowStore.getState();
+      const inputs = resolveNodeInputs(id, nodes, edges);
+
+      const videoUrl = (inputs.video_url as string) ?? data.outputUrl;
+
+      if (!videoUrl) {
+        throw new Error('No video connected or uploaded');
+      }
+
+      const timestamp = (inputs.timestamp as string) ?? data.timestamp ?? '50%';
+
+      const { runId } = await triggerTask('extract-frame', {
+        videoUrl,
+        timestamp,
+      });
+
+      const result = await pollTaskResult(runId, (status) => {
+        updateNodeStatus(id, status);
+      });
+
+      const outputUrl = result.outputUrl as string;
+      const durationMs = Date.now() - startTime;
+
+      updateNodeData(id, {
+        output: outputUrl,
+        status: 'success',
+      });
+
       addRun({
         timestamp: new Date(),
         scope: 'single',
         scopeLabel: 'Single Node',
         status: 'success',
         durationMs,
-        nodeResults: [{ nodeId: id, nodeName: `Extract Frame (${id})`, status: 'success', durationMs, output }],
+        nodeResults: [
+          {
+            nodeId: id,
+            nodeName: `Extract Frame (${id})`,
+            status: 'success',
+            durationMs,
+            output: outputUrl,
+          },
+        ],
       });
-    } catch {
+    } catch (err) {
       updateNodeStatus(id, 'failed');
+      updateNodeData(id, {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -42,8 +82,6 @@ export function FrameNode({ id, data, selected }: NodeProps) {
         onRun={handleRun}
       />
       <div className="px-3 pt-[10px] pb-3">
-
-        {/* video_url handle label */}
         <div className="flex items-center justify-between mb-3 pl-3">
           <span className="text-[10px] text-[#505050]">video input</span>
           <span className="text-[9px] text-[#f87171]">required</span>
@@ -60,15 +98,20 @@ export function FrameNode({ id, data, selected }: NodeProps) {
           />
         </NodeField>
 
-        {/* timestamp from-node handle label */}
         <div className="flex items-center pl-3 mt-1 mb-2">
-          <span className="text-[9px] text-[#404040]">timestamp (from node) · optional</span>
+          <span className="text-[9px] text-[#404040]">timestamp (from node) - optional</span>
         </div>
 
         {data.output && (
-          <p className="text-[10px] text-[#505050] mb-2 truncate" style={{ fontFamily: 'var(--mono)' }}>
-            ↳ {data.output}
-          </p>
+          <div className="mb-2">
+            <div className="relative rounded-[6px] overflow-hidden bg-[#1a1a1a]" style={{ aspectRatio: '16/9' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={data.output as string} alt="frame preview" className="w-full h-full object-cover" />
+            </div>
+            <p className="text-[10px] text-[#505050] mt-1.5 truncate" style={{ fontFamily: 'var(--mono)' }}>
+              {'->'} {data.output}
+            </p>
+          </div>
         )}
 
         <Button
@@ -77,7 +120,7 @@ export function FrameNode({ id, data, selected }: NodeProps) {
           icon={!isRunning ? <Play size={10} /> : undefined}
           onClick={handleRun}
         >
-          {isRunning ? 'Extracting…' : 'Extract Frame'}
+          {isRunning ? 'Extracting...' : 'Extract Frame'}
         </Button>
 
         <div className="flex justify-end mt-3 pr-2">
@@ -85,18 +128,28 @@ export function FrameNode({ id, data, selected }: NodeProps) {
         </div>
       </div>
 
-      {/* Left input handles */}
-      <Handle type="target" position={Position.Left} id="video_url"
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="video_url"
         style={{ top: 72, background: '#fbbf24', borderColor: '#f59e0b' }}
-        title="Input: Video URL (video)" />
-      <Handle type="target" position={Position.Left} id="timestamp"
+        title="Input: Video URL (video)"
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="timestamp"
         style={{ top: 155, background: '#222', borderColor: 'rgba(255,255,255,0.2)' }}
-        title="Input: Timestamp from node" />
+        title="Input: Timestamp from node"
+      />
 
-      {/* Right output handle */}
-      <Handle type="source" position={Position.Right} id="output"
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="output"
         style={{ top: '50%', background: '#4ade80', borderColor: '#22c55e' }}
-        title="Output: Extracted Frame Image URL" />
+        title="Output: Extracted Frame Image URL"
+      />
     </div>
   );
 }
