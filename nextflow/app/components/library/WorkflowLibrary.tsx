@@ -1,0 +1,222 @@
+'use client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import {
+  FolderKanban,
+  Grid2x2,
+  Home,
+  ImageIcon,
+  MoreHorizontal,
+  MonitorPlay,
+  Package2,
+  Plus,
+  Sparkles,
+  Video,
+} from 'lucide-react';
+import { createWorkflow, type SavedWorkflowData } from '@/actions/workflows';
+
+function formatUpdatedAt(date: Date) {
+  return new Date(date).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function WorkflowLibrary({
+  workflows,
+}: {
+  workflows: SavedWorkflowData[];
+}) {
+  const router = useRouter();
+  const [isCreating, startCreating] = useTransition();
+
+  function handleCreateWorkflow() {
+    startCreating(async () => {
+      const result = await createWorkflow('Untitled');
+
+      if (result.success && result.id) {
+        router.push(`/nodes/${result.id}?new=1`);
+      }
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0c0c0c] text-[#f0f0f0]">
+      <div className="flex min-h-screen">
+        <aside className="w-[252px] border-r border-white/5 bg-black px-2 py-4">
+          <div className="mb-8 px-3">
+            <div className="flex h-10 items-center gap-3 rounded-xl px-3 text-[#f0f0f0]">
+              <div className="h-5 w-5 rounded-[5px] border border-white/20" />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            {[
+              ['Home', Home],
+              ['Train Lora', Sparkles],
+              ['Node Editor', Package2],
+              ['Assets', FolderKanban],
+            ].map(([label, Icon]) => (
+              <div
+                key={label}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] ${
+                  label === 'Node Editor'
+                    ? 'bg-white/10 text-white'
+                    : 'text-[#d0d0d0]'
+                }`}
+              >
+                <Icon size={18} />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 px-4 text-[12px] uppercase tracking-[0.2em] text-[#666]">
+            Tools
+          </div>
+          <div className="mt-2 space-y-1 px-2">
+            {['Image', 'Video', 'Enhancer', 'Nano Banana', 'Realtime', 'Edit', 'More'].map((label) => (
+              <div
+                key={label}
+                className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-[14px] text-[#d0d0d0]"
+              >
+                <span className="text-[16px] text-[#7a7a7a]">•</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <main className="flex-1 overflow-y-auto">
+          <section className="relative h-[272px] overflow-hidden border-b border-white/5">
+            <img
+              src="/img.png"
+              alt="Workflow library hero"
+              className="absolute inset-0 h-full w-full object-cover object-center scale-110"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.45))]" />
+            <div className="relative z-10 mx-auto flex h-full max-w-[980px] flex-col justify-center px-10">
+              <div className="max-w-[520px]">
+                <h1 className="text-[18px] font-[600] leading-[1.6] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
+                  Nodes is the most powerful way to operate Krea. Connect every
+                  tool and model into complex automated pipelines.
+                </h1>
+                <button
+                  type="button"
+                  onClick={handleCreateWorkflow}
+                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-[18px] font-[600] text-[#0b0b0b] transition-transform hover:scale-[1.01]"
+                >
+                  {isCreating ? 'Creating...' : 'New Workflow'}
+                  <span aria-hidden>{'->'}</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="mx-auto max-w-[980px] px-10 py-14">
+            <div className="border-b border-white/10 pb-4">
+              <div className="flex gap-12 text-[17px] text-white">
+                <button className="rounded-2xl bg-white/8 px-6 py-3 font-[500]">
+                  Projects
+                </button>
+                <button className="py-3 text-[#d0d0d0]">Apps</button>
+                <button className="py-3 text-[#d0d0d0]">Examples</button>
+                <button className="py-3 text-[#d0d0d0]">Templates</button>
+              </div>
+            </div>
+
+            {workflows.length === 0 ? (
+              <div className="flex flex-col items-center py-24 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#2c9bff,#0f67ff)] shadow-[0_12px_40px_rgba(13,104,255,0.28)]">
+                  <Grid2x2 size={24} />
+                </div>
+                <h2 className="mt-6 text-[40px] font-[600] tracking-[-0.02em] text-white">
+                  No Workflows Yet
+                </h2>
+                <p className="mt-3 max-w-[420px] text-[24px] leading-[1.5] text-[#a6a6a6]">
+                  You haven&apos;t created any workflows yet. Get started by creating
+                  your first one.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCreateWorkflow}
+                  className="mt-10 rounded-full bg-white px-10 py-4 text-[18px] font-[600] text-black"
+                >
+                  {isCreating ? 'Creating...' : 'New Workflow'}
+                </button>
+                <button className="mt-8 text-[16px] text-[#a0a0a0]">
+                  Learn More {'->'}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={handleCreateWorkflow}
+                  className="flex min-h-[220px] flex-col justify-between rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-6 text-left transition-colors hover:bg-white/[0.05]"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
+                    <Plus size={22} />
+                  </div>
+                  <div>
+                    <div className="text-[22px] font-[600]">New workflow</div>
+                    <div className="mt-2 text-[14px] text-[#a0a0a0]">
+                      Create an empty node editor canvas
+                    </div>
+                  </div>
+                </button>
+
+                {workflows.map((workflow) => (
+                  <Link
+                    key={workflow.id}
+                    href={`/nodes/${workflow.id}`}
+                    className="group block rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#181818,#111111)] p-6 transition-transform hover:-translate-y-[1px]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#2c9bff,#0f67ff)]">
+                        <FolderKanban size={22} />
+                      </div>
+                      <button type="button" className="text-[#7a7a7a]">
+                        <MoreHorizontal size={18} />
+                      </button>
+                    </div>
+
+                    <div className="mt-14">
+                      <div className="text-[22px] font-[600] tracking-[-0.02em] text-white group-hover:text-white">
+                        {workflow.name}
+                      </div>
+                      <div className="mt-3 flex items-center gap-3 text-[13px] text-[#8a8a8a]">
+                        <span>{workflow.nodes.length} nodes</span>
+                        <span>•</span>
+                        <span>{workflow.edges.length} edges</span>
+                      </div>
+                      <div className="mt-5 flex items-center gap-4 text-[12px] text-[#737373]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <ImageIcon size={13} />
+                          {workflow.nodes.filter((node) => node.type === 'image').length}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Video size={13} />
+                          {workflow.nodes.filter((node) => node.type === 'video').length}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <MonitorPlay size={13} />
+                          {workflow.nodes.filter((node) => node.type === 'llm').length}
+                        </span>
+                      </div>
+                      <div className="mt-6 text-[12px] uppercase tracking-[0.16em] text-[#666]">
+                        Updated {formatUpdatedAt(workflow.updatedAt)}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
