@@ -36,11 +36,20 @@ export function VideoNode({ id, data, selected }: NodeProps) {
           </div>
         ) : (
           <UploadZone
-            icon="🎬"
+            templateId={process.env.NEXT_PUBLIC_TRANSLOADIT_VIDEO_TEMPLATE_ID ?? ''}
             accept="video/mp4,video/quicktime,video/webm,video/x-m4v"
-            acceptLabel="mp4 · mov · webm · m4v"
-            onFile={(file, url) =>
-              updateNodeData(id, { previewUrl: url, fileName: file.name, outputUrl: url })
+            acceptLabel={'mp4 \u00b7 mov \u00b7 webm \u00b7 m4v'}
+            icon={'\u{1F3AC}'}
+            onUploadComplete={(url, fileName) =>
+              updateNodeData(id, {
+                previewUrl: url,
+                fileName,
+                outputUrl: url,
+                status: 'success',
+              })
+            }
+            onUploadError={(err) =>
+              updateNodeData(id, { status: 'failed', uploadError: err })
             }
           />
         )}

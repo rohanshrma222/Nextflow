@@ -32,11 +32,20 @@ export function ImageNode({ id, data, selected }: NodeProps) {
           </div>
         ) : (
           <UploadZone
-            icon="🖼️"
+            templateId={process.env.NEXT_PUBLIC_TRANSLOADIT_IMAGE_TEMPLATE_ID ?? ''}
             accept="image/jpeg,image/png,image/webp,image/gif"
-            acceptLabel="jpg · jpeg · png · webp · gif"
-            onFile={(file, url) =>
-              updateNodeData(id, { previewUrl: url, fileName: file.name, outputUrl: url })
+            acceptLabel={'jpg \u00b7 jpeg \u00b7 png \u00b7 webp \u00b7 gif'}
+            icon={'\u{1F5BC}\uFE0F'}
+            onUploadComplete={(url, fileName) =>
+              updateNodeData(id, {
+                previewUrl: url,
+                fileName,
+                outputUrl: url,
+                status: 'success',
+              })
+            }
+            onUploadError={(err) =>
+              updateNodeData(id, { status: 'failed', uploadError: err })
             }
           />
         )}
