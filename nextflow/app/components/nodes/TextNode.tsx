@@ -24,7 +24,7 @@ export function TextNode({ id, data, selected }: NodeProps) {
           rows={4}
           placeholder="Enter your text…"
           value={data.content ?? ''}
-          onChange={(e) => updateNodeData(id, { content: e.target.value })}
+          onChange={(e) => updateNodeData(id, { content: e.target.value, output: e.target.value || null })}
         />
         <div className="flex items-center justify-end mt-3 pr-2">
           <span className="text-[10px] text-[#505050]">output (text)</span>

@@ -19,8 +19,19 @@ function resolveNodeInputs(
       continue;
     }
 
-    inputs[edge.targetHandle] =
-      sourceNode.data?.output ?? sourceNode.data?.outputUrl;
+    const nextValue = sourceNode.data?.output || sourceNode.data?.outputUrl || sourceNode.data?.content;
+
+    if (typeof inputs[edge.targetHandle] === 'undefined') {
+      inputs[edge.targetHandle] = nextValue;
+      continue;
+    }
+
+    if (Array.isArray(inputs[edge.targetHandle])) {
+      (inputs[edge.targetHandle] as unknown[]).push(nextValue);
+      continue;
+    }
+
+    inputs[edge.targetHandle] = [inputs[edge.targetHandle], nextValue];
   }
 
   return inputs;

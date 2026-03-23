@@ -60,7 +60,7 @@ export function buildNode(type: NodeType, position: { x: number; y: number }): N
       label: type,
       status: 'idle' as const,
       outputType: outputTypes[type],
-      output: null,
+      output: type === 'text' ? '' : null,
     },
     style: { width: widths[type] },
   };

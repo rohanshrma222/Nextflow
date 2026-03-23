@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { tasks } from '@trigger.dev/sdk/v3';
 
 interface TriggerBody {
-  taskId: 'crop-image' | 'extract-frame';
+  taskId: 'crop-image' | 'extract-frame' | 'run-llm';
   payload: Record<string, unknown>;
 }
 
