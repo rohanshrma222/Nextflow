@@ -1,23 +1,38 @@
 import { NextResponse } from 'next/server';
 import { tasks } from '@trigger.dev/sdk/v3';
+import { z } from 'zod';
 
-interface TriggerBody {
-  taskId: 'crop-image' | 'extract-frame' | 'run-llm';
-  payload: Record<string, unknown>;
-}
+const triggerBodySchema = z.object({
+  taskId: z.enum(['crop-image', 'extract-frame', 'run-llm']),
+  payload: z.record(z.string(), z.unknown()),
+});
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as Partial<TriggerBody>;
+    let rawBody: unknown;
 
-    if (!body.taskId || !body.payload) {
+    try {
+      rawBody = await request.json();
+    } catch {
       return NextResponse.json(
-        { error: 'taskId and payload are required.' },
+        { error: 'Invalid JSON body.' },
         { status: 400 },
       );
     }
 
-    const handle = await tasks.trigger(body.taskId, body.payload);
+    const parsedBody = triggerBodySchema.safeParse(rawBody);
+
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: parsedBody.error.issues[0]?.message || 'Invalid request body.' },
+        { status: 400 },
+      );
+    }
+
+    const handle = await tasks.trigger(
+      parsedBody.data.taskId,
+      parsedBody.data.payload,
+    );
 
     return NextResponse.json({ runId: handle.id });
   } catch (error) {

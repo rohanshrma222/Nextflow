@@ -1,16 +1,17 @@
 import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-interface SignatureRequestBody {
-  templateId?: string;
-}
+const signatureRequestSchema = z.object({
+  templateId: z.string().min(1, 'templateId is required.'),
+});
 
 export async function POST(request: Request) {
   try {
-    let body: SignatureRequestBody;
+    let rawBody: unknown;
 
     try {
-      body = (await request.json()) as SignatureRequestBody;
+      rawBody = await request.json();
     } catch {
       return NextResponse.json(
         { error: 'Invalid JSON body.' },
@@ -18,9 +19,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!body.templateId) {
+    const parsedBody = signatureRequestSchema.safeParse(rawBody);
+
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: 'templateId is required.' },
+        { error: parsedBody.error.issues[0]?.message || 'Invalid request body.' },
         { status: 400 },
       );
     }
@@ -40,7 +43,7 @@ export async function POST(request: Request) {
         key: process.env.TRANSLOADIT_KEY,
         expires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
       },
-      template_id: body.templateId,
+      template_id: parsedBody.data.templateId,
     };
 
     const paramsStr = JSON.stringify(params);

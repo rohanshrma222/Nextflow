@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { runs } from '@trigger.dev/sdk/v3';
 import type { RunStatus } from '@/types';
+import { z } from 'zod';
+
+const runIdParamsSchema = z.object({
+  runId: z.string().min(1, 'runId is required.'),
+});
 
 function normalizeRunError(error: unknown): string | null {
   if (!error) {
@@ -49,8 +54,17 @@ export async function GET(
   { params }: { params: Promise<{ runId: string }> },
 ) {
   try {
-    const { runId } = await params;
-    const run = await runs.retrieve(runId);
+    const rawParams = await params;
+    const parsedParams = runIdParamsSchema.safeParse(rawParams);
+
+    if (!parsedParams.success) {
+      return NextResponse.json(
+        { error: parsedParams.error.issues[0]?.message || 'Invalid runId.' },
+        { status: 400 },
+      );
+    }
+
+    const run = await runs.retrieve(parsedParams.data.runId);
 
     return NextResponse.json({
       status: mapRunStatus(run.status),
