@@ -1,7 +1,6 @@
 'use server'
 
 import { auth } from '@clerk/nextjs/server'
-import { Prisma } from '@prisma/client'
 import type { Edge, Node } from 'reactflow'
 import prisma from '@/lib/prisma'
 import { ensureDbUser } from '@/lib/db-user'
@@ -23,8 +22,8 @@ export interface SavedWorkflowData {
   createdAt: Date
 }
 
-function toPrismaJson(value: Node[] | Edge[]): Prisma.InputJsonValue {
-  return value as unknown as Prisma.InputJsonValue
+function toPrismaJson(value: Node[] | Edge[]) {
+  return value as never
 }
 
 export async function createWorkflow(name = 'Untitled') {
@@ -132,7 +131,7 @@ export async function listWorkflows(): Promise<SavedWorkflowData[]> {
       orderBy: { updatedAt: 'desc' },
     })
 
-    return workflows.map((workflow) => ({
+    return workflows.map((workflow: (typeof workflows)[number]) => ({
       id: workflow.id,
       name: workflow.name,
       nodes: workflow.nodes as unknown as Node[],

@@ -21,14 +21,14 @@ export async function fetchRuns() {
       orderBy: { timestamp: 'desc' },
     })
     
-    return runs.map((run) => ({
+    return runs.map((run: (typeof runs)[number]) => ({
       id: run.id,
       timestamp: run.timestamp,
       scope: run.scope as 'full' | 'partial' | 'single',
       scopeLabel: run.scopeLabel,
       status: run.status as 'success' | 'failed' | 'running',
       durationMs: run.durationMs,
-      nodeResults: run.nodeResults.map((nr) => ({
+      nodeResults: run.nodeResults.map((nr: (typeof run.nodeResults)[number]) => ({
         nodeId: nr.nodeId,
         nodeName: nr.nodeName,
         status: nr.status as 'success' | 'failed' | 'running',
