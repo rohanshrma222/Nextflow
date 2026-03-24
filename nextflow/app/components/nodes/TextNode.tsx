@@ -38,28 +38,29 @@ export function TextNode({ id, data, selected }: NodeProps) {
 
       {/* Main Node Box */}
       <div className={cn(
-        "w-[280px] rounded-[14px] border-[1.5px] bg-[#171717] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
+        "w-[280px] rounded-[12px] border-[2.0px] bg-[#202020] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
         selected ? "border-[#eab308]" : "border-transparent"
       )}>
         {/* Handles row */}
-        <div className="flex justify-between items-center px-[18px] pt-3 pb-2">
+        <div className="flex justify-between items-center px-[18px] pt-1 pb-3">
           <span className="text-[13px] text-[#777777] font-medium">Input</span>
           <span className="text-[13px] text-[#777777] font-medium">Output</span>
         </div>
 
+        {/* mini toolbar */}
+        <div className="flex justify-between items-center mb-2 px-7">
+          <Pen size={12} className="text-[#555555]" />
+          <button 
+            className="text-[#888888] hover:text-[#cccccc] transition-colors"
+            onClick={() => navigator.clipboard.writeText(data.content ?? '')}
+            title="Copy text"
+          >
+            <Copy size={13} />
+          </button>
+        </div>
+
         {/* Text Area wrapper */}
-        <div className="mx-[6px] mb-[6px] bg-[#111111] rounded-[10px] p-2.5 flex flex-col border border-transparent">
-          {/* mini toolbar */}
-          <div className="flex justify-between items-center mb-1 px-1">
-            <Pen size={12} className="text-[#555555]" />
-            <button 
-              className="text-[#888888] hover:text-[#cccccc] transition-colors"
-              onClick={() => navigator.clipboard.writeText(data.content ?? '')}
-              title="Copy text"
-            >
-              <Copy size={13} />
-            </button>
-          </div>
+        <div className="mx-[17px] mb-[20px] bg-[#171717] rounded-[7px] p-0.5 pb-5 flex flex-col border border-[#222222] shadow-[inset_0_-1px_0_0_#3a3a3a]">
           <textarea
             className="w-full bg-transparent text-[13px] text-[#cccccc] placeholder:text-[#555555] resize-none outline-none px-1 pb-1"
             rows={5}
@@ -74,13 +75,13 @@ export function TextNode({ id, data, selected }: NodeProps) {
           type="target"
           position={Position.Left}
           id="input"
-          className="!bg-[#eab308] !border-[#2a2a2a] !border-[2px] !w-[14px] !h-[14px] !left-[-7px] !top-[21px] z-50"
+          className="!bg-[#eab308] !border-none !w-[12px] !h-[12px] !left-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(234,179,8,0.15)]"
         />
         <Handle
           type="source"
           position={Position.Right}
           id="output"
-          className="!bg-[#eab308] !border-[#2a2a2a] !border-[2px] !w-[14px] !h-[14px] !right-[-7px] !top-[21px] z-50"
+          className="!bg-[#eab308] !border-none !w-[12px] !h-[12px] !right-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(234,179,8,0.15)]"
         />
       </div>
 

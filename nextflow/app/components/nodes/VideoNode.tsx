@@ -53,7 +53,7 @@ export function VideoNode({ id, data, selected }: NodeProps) {
 
       {/* Main Node Box */}
       <div className={cn(
-        "w-[280px] rounded-[14px] border-[1.5px] bg-[#171717] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
+        "w-[280px] rounded-[14px] border-[2.0px] bg-[#171717] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
         selected ? "border-[#22c55e]" : "border-transparent"
       )}>
         {/* Content Area */}
@@ -175,13 +175,13 @@ export function VideoNode({ id, data, selected }: NodeProps) {
           type="target"
           position={Position.Left}
           id="input"
-          className="!bg-[#22c55e] !border-[#2a2a2a] !border-[2px] !w-[14px] !h-[14px] !left-[-7px] !top-auto !bottom-[13px] z-50"
+          className="!bg-[#22c55e] !border-none !w-[12px] !h-[12px] !left-[-7px] !top-auto !bottom-[14px] z-50 shadow-[0_0_0_6px_rgba(34,197,94,0.15)]"
         />
         <Handle
           type="source"
           position={Position.Right}
           id="output"
-          className="!bg-[#22c55e] !border-[#2a2a2a] !border-[2px] !w-[14px] !h-[14px] !right-[-7px] !top-auto !bottom-[13px] z-50"
+          className="!bg-[#22c55e] !border-none !w-[12px] !h-[12px] !right-[-7px] !top-auto !bottom-[14px] z-50 shadow-[0_0_0_6px_rgba(34,197,94,0.15)]"
         />
       </div>
 
