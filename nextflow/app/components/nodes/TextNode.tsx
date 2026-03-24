@@ -32,7 +32,7 @@ export function TextNode({ id, data, selected }: NodeProps) {
     >
       {/* Node Header outside the main box */}
       <div className="flex items-center gap-2 mb-2 pl-1">
-        <TextCursor size={14} className="text-[#eab308]" />
+        <TextCursor size={14} className="text-[#ec4899]" />
         <span className="text-[14px] text-[#8a8a8a] font-medium leading-none">Text</span>
       </div>
 
@@ -75,13 +75,13 @@ export function TextNode({ id, data, selected }: NodeProps) {
           type="target"
           position={Position.Left}
           id="input"
-          className="!bg-[#eab308] !border-none !w-[12px] !h-[12px] !left-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(234,179,8,0.15)]"
+          className="!bg-[#ec4899] !border-none !w-[12px] !h-[12px] !left-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(236,72,153,0.15)]"
         />
         <Handle
           type="source"
           position={Position.Right}
           id="output"
-          className="!bg-[#eab308] !border-none !w-[12px] !h-[12px] !right-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(234,179,8,0.15)]"
+          className="!bg-[#ec4899] !border-none !w-[12px] !h-[12px] !right-[-7px] !top-[15px] z-50 shadow-[0_0_0_6px_rgba(236,72,153,0.15)]"
         />
       </div>
 

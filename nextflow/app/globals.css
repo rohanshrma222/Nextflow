@@ -209,3 +209,7 @@ html, body {
 .animate-menu {
   animation: menuFadeIn 0.15s ease-out forwards;
 }
+
+[id$="-node-context-menu"] > button:first-of-type > div:last-child {
+  display: none;
+}

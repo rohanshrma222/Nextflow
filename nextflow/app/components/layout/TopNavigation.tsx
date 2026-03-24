@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { ChevronDown, ChevronUp, Download, Save, Upload, ChevronLeft, ChevronRight, Users, User } from 'lucide-react';
+import { ChevronDown, Download, Save, Upload, ChevronLeft, ChevronRight, Users, User } from 'lucide-react';
 import { saveWorkflow } from '@/actions/workflows';
 import { showToast } from '@/lib/utils';
 import { cn } from '@/lib/cn';
@@ -240,7 +240,7 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
             title="Open menu"
             className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] transition-colors"
           >
-            <ChevronUp
+            <ChevronDown
               size={14}
               className={cn('transition-transform duration-200', isMenuOpen && 'rotate-180')}
             />
