@@ -3,12 +3,14 @@ import { Handle, Position, NodeProps } from 'reactflow';
 import { TextCursor, Pen, Copy, Trash2 } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 import { cn } from '@/lib/cn';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 export function TextNode({ id, data, selected }: NodeProps) {
   const { updateNodeData, deleteNode, duplicateNode } = useWorkflowStore();
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
+  const [draftContent, setDraftContent] = useState(String(data.content ?? ''));
+  const isEditingRef = useRef(false);
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -20,6 +22,19 @@ export function TextNode({ id, data, selected }: NodeProps) {
     document.addEventListener('mousedown', handleClose, { capture: true });
     return () => document.removeEventListener('mousedown', handleClose, { capture: true });
   }, [contextMenu]);
+
+  useEffect(() => {
+    if (!isEditingRef.current) {
+      setDraftContent(String(data.content ?? ''));
+    }
+  }, [data.content]);
+
+  function commitContent(value: string) {
+    updateNodeData(id, {
+      content: value,
+      output: value || null,
+    });
+  }
 
   return (
     <div 
@@ -65,8 +80,15 @@ export function TextNode({ id, data, selected }: NodeProps) {
             className="w-full bg-transparent text-[13px] text-[#cccccc] placeholder:text-[#555555] resize-none outline-none px-1 pb-1"
             rows={5}
             placeholder="Write something..."
-            value={data.content ?? ''}
-            onChange={(e) => updateNodeData(id, { content: e.target.value, output: e.target.value || null })}
+            value={draftContent}
+            onFocus={() => {
+              isEditingRef.current = true;
+            }}
+            onBlur={(e) => {
+              isEditingRef.current = false;
+              commitContent(e.target.value);
+            }}
+            onChange={(e) => setDraftContent(e.target.value)}
           />
         </div>
 

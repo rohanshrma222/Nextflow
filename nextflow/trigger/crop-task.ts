@@ -100,16 +100,21 @@ function runCrop(
       .videoFilter(`crop=${cropW}:${cropH}:${cropX}:${cropY}`)
       .outputOptions([
         '-frames:v 1',
-        '-q:v 2',
         '-f image2',
         '-update 1',
         '-y',
       ])
+      .outputOptions(['-c:v png'])
       .output(outputPath)
       .on('end', () => resolve())
       .on('error', (error) => reject(error))
       .run();
   });
+}
+
+function clampToEven(value: number) {
+  const floored = Math.floor(value);
+  return floored % 2 === 0 ? floored : floored - 1;
 }
 
 export const cropImageTask = task({
@@ -119,7 +124,7 @@ export const cropImageTask = task({
     const inputExt = getImageExtension(payload.imageUrl);
     const tempDir = os.tmpdir();
     const inputPath = path.join(tempDir, `${runId}_input.${inputExt}`);
-    const outputPath = path.join(tempDir, `${runId}_output.jpg`);
+    const outputPath = path.join(tempDir, `${runId}_output.png`);
 
     console.log('Crop task started', payload);
 
@@ -132,20 +137,23 @@ export const cropImageTask = task({
       const { width: imgWidth, height: imgHeight } =
         await probeImageDimensions(inputPath);
 
-      let cropW = Math.floor(imgWidth * (payload.width / 100));
-      let cropH = Math.floor(imgHeight * (payload.height / 100));
-      const cropX = Math.floor(imgWidth * (payload.x / 100));
-      const cropY = Math.floor(imgHeight * (payload.y / 100));
+      let cropW = clampToEven(imgWidth * (payload.width / 100));
+      let cropH = clampToEven(imgHeight * (payload.height / 100));
+      let cropX = clampToEven(imgWidth * (payload.x / 100));
+      let cropY = clampToEven(imgHeight * (payload.y / 100));
 
       if (cropX + cropW > imgWidth) {
-        cropW = imgWidth - cropX;
+        cropW = clampToEven(imgWidth - cropX);
       }
 
       if (cropY + cropH > imgHeight) {
-        cropH = imgHeight - cropY;
+        cropH = clampToEven(imgHeight - cropY);
       }
 
-      if (cropW <= 0 || cropH <= 0) {
+      if (cropX < 0) cropX = 0;
+      if (cropY < 0) cropY = 0;
+
+      if (cropW < 2 || cropH < 2) {
         throw new Error('Invalid crop dimensions');
       }
 
@@ -160,7 +168,7 @@ export const cropImageTask = task({
       }
 
       console.log('Uploading cropped image to Transloadit');
-      const outputUrl = await uploadToTransloadit(outputPath, 'image/jpeg');
+      const outputUrl = await uploadToTransloadit(outputPath, 'image/png');
 
       console.log('Crop task completed', outputUrl);
       return { outputUrl };

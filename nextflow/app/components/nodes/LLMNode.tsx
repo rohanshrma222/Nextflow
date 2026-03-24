@@ -31,6 +31,18 @@ function normalizeImageInputs(value: unknown): string[] {
   return [];
 }
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error !== 'string' || !error.trim()) {
+    return 'Something went wrong while running the model. Please try again.';
+  }
+
+  if (error === 'No user message connected') {
+    return 'Connect a user message before running this node.';
+  }
+
+  return error;
+}
+
 export function LLMNode({ id, data, selected }: NodeProps) {
   const { updateNodeData, updateNodeStatus, addRun, deleteNode, duplicateNode } = useWorkflowStore();
   const isRunning = data.status === 'running';
@@ -102,7 +114,7 @@ export function LLMNode({ id, data, selected }: NodeProps) {
 
   return (
     <div 
-      className={cn('flow-node group flex flex-col', isRunning && 'node-running', selected && 'selected')}
+      className={cn('flow-node group flex flex-col', selected && 'selected')}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -125,19 +137,25 @@ export function LLMNode({ id, data, selected }: NodeProps) {
         
         {/* Top Preview Area (Flush with top border) */}
         <div className="bg-[#141414] w-full min-h-[140px] rounded-t-[10px] flex items-center justify-center p-3 border-b border-[#2a2a2a] relative">
-           {isRunning && (
-             <div className="absolute inset-0 bg-[#141414]/60 flex items-center justify-center rounded-t-[10px] z-10 backdrop-blur-[2px]">
-                <Loader2 size={24} className="text-[#9b6dff] animate-spin drop-shadow-[0_0_6px_rgba(155,109,255,0.4)]" />
+           {isRunning ? (
+             <span className="text-[12px] text-[#555555] font-medium animate-pulse">
+               Results will appear here
+             </span>
+           ) : data.error ? (
+             <div className="w-full rounded-[8px] border border-red-500/20 bg-red-500/8 px-3 py-2 text-left">
+               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#f87171]">
+                 Run failed
+               </p>
+               <p className="mt-1 text-[12px] leading-[1.5] text-[#f3b1b1]">
+                 {getErrorMessage(data.error)}
+               </p>
              </div>
-           )}
-           {data.error ? (
-             <span className="text-[12px] text-[#ef4444]">{data.error as string}</span>
            ) : data.output ? (
              <div className="w-full max-h-[220px] overflow-y-auto text-left text-[12px] text-[#cccccc] leading-[1.6] scrollbar-hide py-1 font-sans">
                {data.output as string}
              </div>
            ) : (
-             <span className="text-[12px] text-[#555555]">Results will appear here</span>
+             <span className="text-[12px] text-[#555555] font-medium">Results will appear here</span>
            )}
         </div>
 
@@ -190,12 +208,12 @@ export function LLMNode({ id, data, selected }: NodeProps) {
                disabled={isRunning}
                className="w-full h-[32px] bg-[#9b6dff] hover:bg-[#8659eb] text-white rounded-[6px] flex justify-center items-center gap-2 text-[13px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
              >
-               {isRunning ? (
-                 <>
-                   <Loader2 size={13} className="animate-spin" />
-                   <span>Running...</span>
-                 </>
-               ) : (
+              {isRunning ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" />
+                  <span className="animate-pulse">Running...</span>
+                </>
+              ) : (
                  <>
                    <Play size={13} className="fill-current" />
                    <span>Run Node</span>

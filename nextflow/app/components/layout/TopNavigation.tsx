@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { ChevronDown, Download, Save, Upload, ChevronLeft, ChevronRight, Users, User } from 'lucide-react';
+import { ChevronDown, Download, Play, Save, Upload, ChevronLeft, ChevronRight, Users, User } from 'lucide-react';
 import { saveWorkflow } from '@/actions/workflows';
 import { showToast } from '@/lib/utils';
 import { cn } from '@/lib/cn';
@@ -16,6 +16,7 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
   const { workflowName, setWorkflowName, nodes, edges, setNodes, setEdges, historyPanelOpen } =
     useWorkflowStore();
   const [isSaving, startSaving] = useTransition();
+  const [isRunningWorkflow, startRunningWorkflow] = useTransition();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLogoMenuOpen, setIsLogoMenuOpen] = useState(false);
   const [isWorkspacesOpen, setIsWorkspacesOpen] = useState(false);
@@ -35,6 +36,19 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
       }
 
       showToast(result.error || 'Failed to save workflow');
+    });
+  }
+
+  function handleRunWorkflow() {
+    startRunningWorkflow(async () => {
+      const runner = (window as Window & { __nfRunAll?: () => void }).__nfRunAll;
+
+      if (!runner) {
+        showToast('Workflow runner is not ready');
+        return;
+      }
+
+      runner();
     });
   }
 
@@ -222,6 +236,16 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
           className="hidden"
           onChange={handleImport}
         />
+
+        <button
+          type="button"
+          onClick={handleRunWorkflow}
+          disabled={isRunningWorkflow}
+          className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#7c4dff] hover:bg-[#6f44ea] border border-white/10 text-[#f0f0f0] text-[12px] font-[600] transition-colors disabled:opacity-50"
+        >
+          <Play size={13} />
+          {isRunningWorkflow ? 'Running...' : 'Run Workflow'}
+        </button>
 
         <button
           type="button"

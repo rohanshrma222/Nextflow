@@ -74,7 +74,7 @@ export function FrameNode({ id, data, selected }: NodeProps) {
 
   return (
     <div 
-      className={cn('flow-node group flex flex-col', isRunning && 'node-running', selected && 'selected')}
+      className={cn('flow-node group flex flex-col', selected && 'selected')}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -163,7 +163,7 @@ export function FrameNode({ id, data, selected }: NodeProps) {
               {isRunning ? (
                 <>
                   <Loader2 size={13} className="animate-spin" />
-                  <span>Extracting...</span>
+                  <span className="animate-pulse">Extracting...</span>
                 </>
               ) : (
                 <>

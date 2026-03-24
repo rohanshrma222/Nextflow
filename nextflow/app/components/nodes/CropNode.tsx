@@ -80,7 +80,7 @@ export function CropNode({ id, data, selected }: NodeProps) {
 
   return (
     <div 
-      className={cn('flow-node group flex flex-col', isRunning && 'node-running', selected && 'selected')}
+      className={cn('flow-node group flex flex-col', selected && 'selected')}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -201,7 +201,7 @@ export function CropNode({ id, data, selected }: NodeProps) {
               {isRunning ? (
                 <>
                   <Loader2 size={13} className="animate-spin" />
-                  <span>Cropping...</span>
+                  <span className="animate-pulse">Cropping...</span>
                 </>
               ) : (
                 <>
