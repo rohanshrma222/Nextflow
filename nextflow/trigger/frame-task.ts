@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import ffmpeg from 'fluent-ffmpeg';
 import { task } from '@trigger.dev/sdk/v3';
 import { uploadToTransloadit } from './lib/transloadit';
@@ -95,6 +96,21 @@ async function resolveTimestamp(
   return seconds;
 }
 
+async function readInputBuffer(videoUrl: string): Promise<Buffer> {
+  if (videoUrl.startsWith('/')) {
+    const localPath = path.join(process.cwd(), 'public', videoUrl.replace(/^\/+/, ''));
+    return fs.readFileSync(localPath);
+  }
+
+  const response = await fetch(videoUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download video: ${response.status}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
 export const extractFrameTask = task({
   id: 'extract-frame',
   run: async (payload: FramePayload): Promise<FrameResult> => {
@@ -107,13 +123,7 @@ export const extractFrameTask = task({
 
     try {
       console.log('Downloading video', payload.videoUrl);
-      const response = await fetch(payload.videoUrl);
-
-      if (!response.ok) {
-        throw new Error(`Failed to download video: ${response.status}`);
-      }
-
-      const inputBuffer = Buffer.from(await response.arrayBuffer());
+      const inputBuffer = await readInputBuffer(payload.videoUrl);
       fs.writeFileSync(inputPath, inputBuffer);
 
       console.log('Resolving timestamp', payload.timestamp);

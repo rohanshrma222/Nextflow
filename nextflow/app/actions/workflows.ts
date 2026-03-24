@@ -1,9 +1,11 @@
 'use server'
 
 import { auth } from '@clerk/nextjs/server'
+import { headers } from 'next/headers'
 import type { Edge, Node } from 'reactflow'
 import prisma from '@/lib/prisma'
 import { ensureDbUser } from '@/lib/db-user'
+import { getSampleWorkflow } from '@/lib/sampleWorkflow'
 
 interface SaveWorkflowInput {
   id: string
@@ -46,6 +48,44 @@ export async function createWorkflow(name = 'Untitled') {
   } catch (error) {
     console.error('Failed to create workflow:', error)
     return { success: false, error: 'Failed to create workflow' }
+  }
+}
+
+export async function createSampleWorkflow() {
+  try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      throw new Error('Unauthorized')
+    }
+
+    await ensureDbUser(userId)
+
+    const headerStore = await headers()
+    const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host')
+    const proto = headerStore.get('x-forwarded-proto') ?? 'http'
+
+    if (!host) {
+      throw new Error('Could not determine app host for sample assets')
+    }
+
+    const sample = getSampleWorkflow(`${proto}://${host}`)
+
+    const workflow = await prisma.workflow.create({
+      data: {
+        user: {
+          connect: { id: userId },
+        },
+        name: sample.name,
+        nodes: sample.nodes,
+        edges: sample.edges,
+      },
+    })
+
+    return { success: true, id: workflow.id }
+  } catch (error) {
+    console.error('Failed to create sample workflow:', error)
+    return { success: false, error: 'Failed to create sample workflow' }
   }
 }
 

@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import ffmpeg from 'fluent-ffmpeg';
 import { task } from '@trigger.dev/sdk/v3';
 import { uploadToTransloadit } from './lib/transloadit';
@@ -22,6 +24,46 @@ interface ProbeData {
   }>;
 }
 
+function getImageExtension(imageUrl: string): string {
+  const supportedExtensions = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
+
+  function normalizeExtension(rawExt: string | undefined): string {
+    const ext = rawExt?.trim().toLowerCase();
+
+    if (!ext || !supportedExtensions.has(ext)) {
+      return 'jpg';
+    }
+
+    return ext;
+  }
+
+  try {
+    if (imageUrl.startsWith('/')) {
+      return normalizeExtension(imageUrl.split('.').pop());
+    }
+
+    const url = new URL(imageUrl);
+    return normalizeExtension(url.pathname.split('.').pop());
+  } catch {
+    return 'jpg';
+  }
+}
+
+async function readInputBuffer(imageUrl: string): Promise<Buffer> {
+  if (imageUrl.startsWith('/')) {
+    const localPath = path.join(process.cwd(), 'public', imageUrl.replace(/^\/+/, ''));
+    return fs.readFileSync(localPath);
+  }
+
+  const response = await fetch(imageUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download image: ${response.status}`);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
+}
+
 function probeImageDimensions(inputPath: string): Promise<{
   width: number;
   height: number;
@@ -33,7 +75,7 @@ function probeImageDimensions(inputPath: string): Promise<{
         return;
       }
 
-      const stream = data.streams?.[0];
+      const stream = data.streams?.find((item) => item.width && item.height);
 
       if (!stream?.width || !stream?.height) {
         reject(new Error('Could not determine image dimensions'));
@@ -56,6 +98,13 @@ function runCrop(
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
       .videoFilter(`crop=${cropW}:${cropH}:${cropX}:${cropY}`)
+      .outputOptions([
+        '-frames:v 1',
+        '-q:v 2',
+        '-f image2',
+        '-update 1',
+        '-y',
+      ])
       .output(outputPath)
       .on('end', () => resolve())
       .on('error', (error) => reject(error))
@@ -67,20 +116,16 @@ export const cropImageTask = task({
   id: 'crop-image',
   run: async (payload: CropPayload): Promise<CropResult> => {
     const runId = `crop_${Date.now()}`;
-    const inputPath = `/tmp/${runId}_input.jpg`;
-    const outputPath = `/tmp/${runId}_output.jpg`;
+    const inputExt = getImageExtension(payload.imageUrl);
+    const tempDir = os.tmpdir();
+    const inputPath = path.join(tempDir, `${runId}_input.${inputExt}`);
+    const outputPath = path.join(tempDir, `${runId}_output.jpg`);
 
     console.log('Crop task started', payload);
 
     try {
       console.log('Downloading image', payload.imageUrl);
-      const response = await fetch(payload.imageUrl);
-
-      if (!response.ok) {
-        throw new Error(`Failed to download image: ${response.status}`);
-      }
-
-      const inputBuffer = Buffer.from(await response.arrayBuffer());
+      const inputBuffer = await readInputBuffer(payload.imageUrl);
       fs.writeFileSync(inputPath, inputBuffer);
 
       console.log('Probing image dimensions');

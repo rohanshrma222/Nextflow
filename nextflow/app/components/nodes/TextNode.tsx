@@ -39,7 +39,7 @@ export function TextNode({ id, data, selected }: NodeProps) {
       {/* Main Node Box */}
       <div className={cn(
         "w-[280px] rounded-[12px] border-[2.0px] bg-[#202020] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
-        selected ? "border-[#eab308]" : "border-transparent"
+        selected ? "border-[#ec4899]" : "border-transparent"
       )}>
         {/* Handles row */}
         <div className="flex justify-between items-center px-[18px] pt-1 pb-3">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import {
+  CopyPlus,
   FolderKanban,
   Grid2x2,
   ImageIcon,
@@ -13,7 +14,11 @@ import {
   Video,
 } from 'lucide-react';
 
-import { createWorkflow, type SavedWorkflowData } from '@/actions/workflows';
+import {
+  createSampleWorkflow,
+  createWorkflow,
+  type SavedWorkflowData,
+} from '@/actions/workflows';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 
 function formatUpdatedAt(date: Date) {
@@ -31,6 +36,7 @@ export function WorkflowLibrary({
 }) {
   const router = useRouter();
   const [isCreating, startCreating] = useTransition();
+  const [isCreatingSample, startCreatingSample] = useTransition();
 
   function handleCreateWorkflow() {
     startCreating(async () => {
@@ -38,6 +44,16 @@ export function WorkflowLibrary({
 
       if (result.success && result.id) {
         router.push(`/nodes/${result.id}?new=1`);
+      }
+    });
+  }
+
+  function handleCreateSampleWorkflow() {
+    startCreatingSample(async () => {
+      const result = await createSampleWorkflow();
+
+      if (result.success && result.id) {
+        router.push(`/nodes/${result.id}?sample=1`);
       }
     });
   }
@@ -68,6 +84,14 @@ export function WorkflowLibrary({
                 >
                   {isCreating ? 'Creating...' : 'New Workflow'}
                   <span aria-hidden>{'->'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateSampleWorkflow}
+                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-8 py-4 text-[13px] font-[600] text-white backdrop-blur-sm transition-colors hover:bg-black/50"
+                >
+                  <CopyPlus size={15} />
+                  {isCreatingSample ? 'Loading Sample...' : 'Load Sample Workflow'}
                 </button>
               </div>
             </div>
@@ -104,6 +128,13 @@ export function WorkflowLibrary({
                 >
                   {isCreating ? 'Creating...' : 'New Workflow'}
                 </button>
+                <button
+                  type="button"
+                  onClick={handleCreateSampleWorkflow}
+                  className="mt-4 rounded-full border border-white/10 bg-white/5 px-10 py-4 text-[18px] font-[600] text-white"
+                >
+                  {isCreatingSample ? 'Loading Sample...' : 'Load Sample Workflow'}
+                </button>
                 <button className="mt-8 text-[16px] text-[#a0a0a0]">
                   Learn More {'->'}
                 </button>
@@ -122,6 +153,24 @@ export function WorkflowLibrary({
                     <div className="text-[22px] font-[600]">New workflow</div>
                     <div className="mt-2 text-[14px] text-[#a0a0a0]">
                       Create an empty node editor canvas
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCreateSampleWorkflow}
+                  className="flex min-h-[220px] flex-col justify-between rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#19191d,#101014)] p-6 text-left transition-colors hover:bg-white/[0.05]"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#7c4dff,#9b6dff)]">
+                    <CopyPlus size={22} />
+                  </div>
+                  <div>
+                    <div className="text-[22px] font-[600]">
+                      {isCreatingSample ? 'Loading sample...' : 'Sample workflow'}
+                    </div>
+                    <div className="mt-2 text-[14px] text-[#a0a0a0]">
+                      Pre-built graph demonstrating uploads, crop, frame extraction, and LLM flow
                     </div>
                   </div>
                 </button>

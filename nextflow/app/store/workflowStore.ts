@@ -87,9 +87,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
     set((state) => ({ edges: applyEdgeChanges(changes, state.edges) })),
 
   onConnect: (connection) => {
-    const { edges, nodes } = get();
-    const sourceNode = nodes.find((n) => n.id === connection.source);
-    const sourceHandleType = sourceNode?.data?.outputType ?? 'any';
+    const { edges } = get();
 
     const wouldCreateCycle = (srcId: string, tgtId: string): boolean => {
       const visited = new Set<string>();
@@ -114,7 +112,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
       type: 'default',
       animated: true,
       style: {
-        stroke: sourceHandleType === 'image' ? '#4ade80' : sourceHandleType === 'video' ? '#fbbf24' : '#9b6dff',
+        stroke: '#9b6dff',
         strokeWidth: 1.5,
         strokeDasharray: '5 3',
       },

@@ -90,7 +90,7 @@ export function buildSampleWorkflow(): { nodes: Node[]; edges: import('reactflow
   crop.data.cropH = '80';
   frame.data.timestamp = '50%';
 
-  const edge = (id: string, source: string, sh: string, target: string, th: string, type = 'text') => ({
+  const edge = (id: string, source: string, sh: string, target: string, th: string) => ({
     id,
     source,
     sourceHandle: sh,
@@ -98,22 +98,22 @@ export function buildSampleWorkflow(): { nodes: Node[]; edges: import('reactflow
     targetHandle: th,
     animated: true,
     style: {
-      stroke: type === 'image' ? '#4ade80' : type === 'video' ? '#fbbf24' : '#9b6dff',
+      stroke: '#9b6dff',
       strokeWidth: 1.5,
       strokeDasharray: '5 3',
     },
   });
 
   const edges = [
-    edge('e1', t1.id,   'output', llm1.id, 'system_prompt', 'text'),
-    edge('e2', t2.id,   'output', llm1.id, 'user_message',  'text'),
-    edge('e3', img.id,  'output', crop.id, 'image_url',     'image'),
-    edge('e4', crop.id, 'output', llm1.id, 'images',        'image'),
-    edge('e5', vid.id,  'output', frame.id,'video_url',     'video'),
-    edge('e6', t3.id,   'output', llm2.id, 'system_prompt', 'text'),
-    edge('e7', llm1.id, 'output', llm2.id, 'user_message',  'text'),
-    edge('e8', crop.id, 'output', llm2.id, 'images',        'image'),
-    edge('e9', frame.id,'output', llm2.id, 'images',        'image'),
+    edge('e1', t1.id,   'output', llm1.id, 'system_prompt'),
+    edge('e2', t2.id,   'output', llm1.id, 'user_message'),
+    edge('e3', img.id,  'output', crop.id, 'image_url'),
+    edge('e4', crop.id, 'output', llm1.id, 'images'),
+    edge('e5', vid.id,  'output', frame.id,'video_url'),
+    edge('e6', t3.id,   'output', llm2.id, 'system_prompt'),
+    edge('e7', llm1.id, 'output', llm2.id, 'user_message'),
+    edge('e8', crop.id, 'output', llm2.id, 'images'),
+    edge('e9', frame.id,'output', llm2.id, 'images'),
   ];
 
   return { nodes: [t1, t2, img, crop, llm1, vid, frame, t3, llm2], edges };

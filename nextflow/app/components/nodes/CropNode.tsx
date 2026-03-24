@@ -43,10 +43,10 @@ export function CropNode({ id, data, selected }: NodeProps) {
 
       const { runId } = await triggerTask('crop-image', {
         imageUrl,
-        xPercent,
-        yPercent,
-        widthPercent,
-        heightPercent,
+        x: xPercent,
+        y: yPercent,
+        width: widthPercent,
+        height: heightPercent,
       });
 
       const result = await pollTaskResult(runId, (status) => {
