@@ -15,6 +15,14 @@ interface UploadZoneProps {
   icon?: string;
   onUploadComplete: (url: string, fileName: string) => void;
   onUploadError?: (error: string) => void;
+  customIdleContent?: React.ReactNode;
+  customUploadingContent?: React.ReactNode;
+  customProcessingContent?: React.ReactNode;
+  hideBorder?: boolean;
+  hideBackground?: boolean;
+  inputId?: string;
+  disableClick?: boolean;
+  onStateChange?: (state: UploadState) => void;
 }
 
 type UploadState = 'idle' | 'uploading' | 'processing' | 'done' | 'error';
@@ -124,6 +132,14 @@ export function UploadZone({
   icon = '\u{1F4C4}',
   onUploadComplete,
   onUploadError,
+  customIdleContent,
+  customUploadingContent,
+  customProcessingContent,
+  hideBorder,
+  hideBackground,
+  inputId,
+  disableClick,
+  onStateChange,
 }: UploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
@@ -131,7 +147,13 @@ export function UploadZone({
   const mountedRef = useRef(true);
 
   const [dragging, setDragging] = useState(false);
-  const [uploadState, setUploadState] = useState<UploadState>('idle');
+  const [uploadState, setUploadStateInternal] = useState<UploadState>('idle');
+  
+  const setUploadState = (state: UploadState) => {
+    setUploadStateInternal(state);
+    onStateChange?.(state);
+  };
+
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -405,14 +427,16 @@ export function UploadZone({
     }
   }
 
-  const baseBorderColor =
-    uploadState === 'error'
+  const baseBorderColor = hideBorder
+    ? 'transparent'
+    : uploadState === 'error'
       ? 'rgba(248,113,113,0.4)'
       : dragging
         ? 'rgba(155,109,255,0.5)'
         : 'rgba(255,255,255,0.12)';
-  const baseBackground =
-    dragging && uploadState !== 'error'
+  const baseBackground = hideBackground
+    ? 'transparent'
+    : dragging && uploadState !== 'error'
       ? 'rgba(155,109,255,0.06)'
       : '#1a1a1a';
 
@@ -428,7 +452,7 @@ export function UploadZone({
           padding: '16px 12px',
         }}
         onClick={() => {
-          if (uploadState === 'uploading' || uploadState === 'processing') {
+          if (disableClick || uploadState === 'uploading' || uploadState === 'processing') {
             return;
           }
 
@@ -449,113 +473,119 @@ export function UploadZone({
         onDrop={handleDrop}
       >
         {uploadState === 'idle' && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <div style={{ fontSize: 24, lineHeight: 1 }}>{icon}</div>
+          customIdleContent ? customIdleContent : (
             <div
               style={{
-                fontSize: 12,
-                lineHeight: 1.5,
-                color: '#f0f0f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
               }}
             >
-              Drop file or browse
+              <div style={{ fontSize: 24, lineHeight: 1 }}>{icon}</div>
+              <div
+                style={{
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  color: '#f0f0f0',
+                }}
+              >
+                Drop file or browse
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.55)',
+                }}
+              >
+                {acceptLabel}
+              </div>
             </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'rgba(255,255,255,0.55)',
-              }}
-            >
-              {acceptLabel}
-            </div>
-          </div>
+          )
         )}
 
         {uploadState === 'uploading' && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-              textAlign: 'left',
-            }}
-          >
+          customUploadingContent ? customUploadingContent : (
             <div
               style={{
-                fontSize: 11,
-                color: '#f0f0f0',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-              title={fileName}
-            >
-              {truncateText(fileName, 24)}
-            </div>
-            <div
-              style={{
-                width: '100%',
-                height: 3,
-                borderRadius: 2,
-                background: 'rgba(255,255,255,0.08)',
-                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                textAlign: 'left',
               }}
             >
               <div
                 style={{
-                  width: `${progress}%`,
-                  height: '100%',
-                  borderRadius: 2,
-                  background: '#9b6dff',
-                  transition: 'width 180ms ease',
+                  fontSize: 11,
+                  color: '#f0f0f0',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
-              />
+                title={fileName}
+              >
+                {truncateText(fileName, 24)}
+              </div>
+              <div
+                style={{
+                  width: '100%',
+                  height: 3,
+                  borderRadius: 2,
+                  background: 'rgba(255,255,255,0.08)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progress}%`,
+                    height: '100%',
+                    borderRadius: 2,
+                    background: '#9b6dff',
+                    transition: 'width 180ms ease',
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.65)',
+                }}
+              >
+                Uploading{'...'} {progress}%
+              </div>
             </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'rgba(255,255,255,0.65)',
-              }}
-            >
-              Uploading{'...'} {progress}%
-            </div>
-          </div>
+          )
         )}
 
         {uploadState === 'processing' && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span className="spinner" />
+          customProcessingContent ? customProcessingContent : (
             <div
               style={{
-                fontSize: 12,
-                color: '#f0f0f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              Processing{'...'}
+              <span className="spinner" />
+              <div
+                style={{
+                  fontSize: 12,
+                  color: '#f0f0f0',
+                }}
+              >
+                Processing{'...'}
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.55)',
+                }}
+              >
+                Transloadit is handling your file
+              </div>
             </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: 'rgba(255,255,255,0.55)',
-              }}
-            >
-              Transloadit is handling your file
-            </div>
-          </div>
+          )
         )}
 
         {uploadState === 'error' && (
@@ -603,6 +633,7 @@ export function UploadZone({
 
       <input
         ref={inputRef}
+        id={inputId}
         type="file"
         accept={accept}
         onChange={handleInputChange}
