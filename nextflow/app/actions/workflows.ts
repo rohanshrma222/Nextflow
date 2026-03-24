@@ -1,7 +1,7 @@
 'use server'
 
 import { auth } from '@clerk/nextjs/server'
-import { headers } from 'next/headers'
+import { Prisma } from '@prisma/client'
 import type { Edge, Node } from 'reactflow'
 import prisma from '@/lib/prisma'
 import { ensureDbUser } from '@/lib/db-user'
@@ -21,6 +21,10 @@ export interface SavedWorkflowData {
   edges: Edge[]
   updatedAt: Date
   createdAt: Date
+}
+
+function toPrismaJson(value: Node[] | Edge[]): Prisma.InputJsonValue {
+  return value as unknown as Prisma.InputJsonValue
 }
 
 export async function createWorkflow(name = 'Untitled') {
@@ -61,15 +65,7 @@ export async function createSampleWorkflow() {
 
     await ensureDbUser(userId)
 
-    const headerStore = await headers()
-    const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host')
-    const proto = headerStore.get('x-forwarded-proto') ?? 'http'
-
-    if (!host) {
-      throw new Error('Could not determine app host for sample assets')
-    }
-
-    const sample = getSampleWorkflow(`${proto}://${host}`)
+    const sample = getSampleWorkflow()
 
     const workflow = await prisma.workflow.create({
       data: {
@@ -77,8 +73,8 @@ export async function createSampleWorkflow() {
           connect: { id: userId },
         },
         name: sample.name,
-        nodes: sample.nodes,
-        edges: sample.edges,
+        nodes: toPrismaJson(sample.nodes),
+        edges: toPrismaJson(sample.edges),
       },
     })
 
@@ -106,8 +102,8 @@ export async function saveWorkflow(data: SaveWorkflowInput) {
       },
       data: {
         name: data.name.trim() || 'Untitled',
-        nodes: data.nodes,
-        edges: data.edges,
+        nodes: toPrismaJson(data.nodes),
+        edges: toPrismaJson(data.edges),
       },
     })
 

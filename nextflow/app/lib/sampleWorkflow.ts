@@ -15,11 +15,7 @@ const PURPLE_EDGE_STYLE = {
   strokeDasharray: '5 3',
 } as const;
 
-function buildAssetUrl(origin: string, path: string) {
-  return new URL(path, origin).toString();
-}
-
-function buildSampleNodes(origin: string): Node[] {
+function buildSampleNodes(): Node[] {
   return [
   {
     id: 'sample-text-system-a',
@@ -256,8 +252,8 @@ const SAMPLE_EDGES: Edge[] = [
 
 export const SAMPLE_WORKFLOW_NAME = 'Product Marketing Kit Generator';
 
-export function getSampleWorkflow(origin: string): { name: string; nodes: Node[]; edges: Edge[] } {
-  const nodes = buildSampleNodes(origin);
+export function getSampleWorkflow(): { name: string; nodes: Node[]; edges: Edge[] } {
+  const nodes = buildSampleNodes();
 
   return {
     name: SAMPLE_WORKFLOW_NAME,

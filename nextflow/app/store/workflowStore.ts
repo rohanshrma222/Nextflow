@@ -102,12 +102,14 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => ({
       return false;
     };
 
-    if (connection.source && connection.target) {
-      if (wouldCreateCycle(connection.source, connection.target)) return;
-    }
+    if (!connection.source || !connection.target) return;
+
+    if (wouldCreateCycle(connection.source, connection.target)) return;
 
     const newEdge: Edge = {
       ...connection,
+      source: connection.source,
+      target: connection.target,
       id: `e-${Date.now()}`,
       type: 'default',
       animated: true,
