@@ -1,42 +1,61 @@
 'use client';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
-import {
-  FileText,
-  MessageSquare,
-  Crop,
-  Film,
-  PanelLeftClose,
-  PanelLeft,
-} from 'lucide-react';
+import { SignInButton, UserButton, useAuth } from '@clerk/nextjs';
+import { PanelLeft } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 import { buildNode } from '@/lib/utils';
 import { NODE_DEFINITIONS, NodeType } from '@/types';
 import { cn } from '@/lib/cn';
 
 const ICONS: Record<NodeType, React.ReactNode> = {
-  text: <FileText size={18} strokeWidth={1.5} />,
+  text: (
+    <img
+      src="/textnode.png"
+      alt="Text node"
+      className="h-[20px] w-[20px] object-contain"
+    />
+  ),
   image: (
     <img
       src="/uploadimage.webp"
       alt="Upload image"
-      className="h-[22px] w-[22px] object-contain"
+      className="h-[20px] w-[20px] object-contain"
     />
   ),
   video: (
     <img
       src="/uploadvideo.webp"
       alt="Upload video"
-      className="h-[22px] w-[22px] object-contain"
+      className="h-[20px] w-[20px] object-contain"
     />
   ),
-  llm: <MessageSquare size={18} strokeWidth={1.5} />,
-  crop: <Crop size={18} strokeWidth={1.5} />,
-  frame: <Film size={18} strokeWidth={1.5} />,
+  llm: (
+    <img
+      src="/LLm.png"
+      alt="LLM"
+      className="h-[31px] w-[31px] object-contain"
+    />
+  ),
+  crop: (
+    <img
+      src="/cropimage.png"
+      alt="Crop image"
+      className="h-[26px] w-[26px] object-contain"
+    />
+  ),
+  frame: (
+    <img
+      src="/extractimage.png"
+      alt="Extract frame"
+      className="h-[26px] w-[26px] object-contain"
+    />
+  ),
 };
 
 export function LeftSidebar() {
   const { addNode } = useWorkflowStore();
+  const { isSignedIn } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [draggingType, setDraggingType] = useState<NodeType | null>(null);
 
@@ -55,52 +74,43 @@ export function LeftSidebar() {
 
   return (
     <aside
-      className="flex flex-col h-full border-r border-[#1a1a1a] py-3 z-40 relative flex-shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+      className="flex flex-col h-full border-r border-[#1a1a1a] py-3 z-40 relative flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
       style={{
         width: isCollapsed ? 64 : 255,
         background: '#030303',
+        fontFamily: "var(--font-inter, 'Inter', sans-serif)",
+        color: 'white',
       }}
     >
-      <div className={cn('flex px-4 mb-4', isCollapsed ? 'justify-center' : 'justify-start')}>
+      <div className="flex px-4 mb-4 justify-start">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-[#888] hover:bg-white/5 hover:text-white transition-colors shrink-0"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:bg-white/5 hover:text-white transition-colors shrink-0"
         >
-          {isCollapsed ? (
-            <PanelLeft size={18} strokeWidth={1.5} />
-          ) : (
-            <PanelLeftClose size={18} strokeWidth={1.5} />
-          )}
+          <PanelLeft size={18} strokeWidth={1.5} />
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-3">
-        <div className="flex flex-col gap-[2px] w-full items-center mt-2">
+        <div className="flex flex-col gap-[0.1px] w-full mt-2">
           <Link
             href="/nodes"
             title={isCollapsed ? 'Home' : undefined}
-            className={cn(
-              'flex items-center rounded-xl transition-all duration-200 w-full',
-              isCollapsed
-                ? 'justify-center w-10 h-10 mx-auto text-[#888] hover:bg-[#1a1a1a] hover:text-white'
-                : 'justify-start px-3 py-2.5 gap-3 hover:bg-[#111] text-[#d0d0d0]',
-            )}
+            className="flex items-center rounded-xl px-1 py-2 gap-1 hover:bg-[#111] transition-colors duration-200 w-full"
           >
-            <div
-              className={cn(
-                'flex items-center justify-center p-1 rounded-[6px] transition-colors',
-                !isCollapsed && 'bg-white/5',
-              )}
-            >
+            <div className="flex items-center justify-center w-8 h-8 rounded-[6px] shrink-0">
               <img
                 src="/Home.webp"
                 alt="Home"
-                className="h-[22px] w-[22px] object-contain shrink-0"
+                className="h-[20px] w-[20px] object-contain shrink-0"
               />
             </div>
-            {!isCollapsed && (
-              <span className="text-[13.5px] font-[500]">Home</span>
-            )}
+            <span
+              className="text-[14.5px] font-[500] whitespace-nowrap transition-[opacity,max-width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden"
+              style={{ opacity: isCollapsed ? 0 : 1, maxWidth: isCollapsed ? 0 : 200 }}
+            >
+              Home
+            </span>
           </Link>
 
           {NODE_DEFINITIONS.map((def) => (
@@ -112,51 +122,46 @@ export function LeftSidebar() {
               onClick={() => handleClick(def.type)}
               title={isCollapsed ? def.label : undefined}
               className={cn(
-                'flex items-center rounded-xl transition-all duration-200 cursor-grab active:cursor-grabbing w-full',
+                'flex items-center rounded-xl px-1 py-2 gap-1 hover:bg-[#111] transition-colors duration-200 cursor-grab active:cursor-grabbing w-full',
                 draggingType === def.type && 'opacity-50',
-                isCollapsed
-                  ? 'justify-center w-10 h-10 mx-auto text-[#888] hover:bg-[#1a1a1a] hover:text-white'
-                  : 'justify-start px-3 py-2.5 gap-3 hover:bg-[#111] text-[#d0d0d0]',
               )}
             >
-              <div
-                className={cn(
-                  'flex items-center justify-center p-1 rounded-[6px] transition-colors',
-                  !isCollapsed && 'bg-white/5',
-                )}
-              >
+              <div className="flex items-center justify-center w-8 h-6 rounded-[6px] shrink-0">
                 {ICONS[def.type]}
               </div>
-              {!isCollapsed && (
-                <span className="text-[13.5px] font-[500]">{def.label}</span>
-              )}
+              <span
+                className="text-[14.5px] font-[500] whitespace-nowrap transition-[opacity,max-width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden"
+                style={{ opacity: isCollapsed ? 0 : 1, maxWidth: isCollapsed ? 0 : 200 }}
+              >
+                {def.label}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className={cn('mt-auto px-4 pt-4 border-t border-[#1a1a1a]', isCollapsed ? 'flex justify-center' : '')}>
-        <div
-          className={cn(
-            'flex items-center cursor-pointer rounded-xl hover:bg-[#111] transition-colors',
-            isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-2 py-2 gap-3',
-          )}
-        >
-          <div
-            className="w-[30px] h-[30px] rounded-[8px] flex-shrink-0 flex items-center justify-center text-[12px] font-[500] text-[#ccc]"
-            style={{ background: '#222' }}
-          >
-            E
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col truncate flex-1 min-w-0">
-              <span className="text-[13px] font-[500] text-[#f0f0f0] truncate text-left">
-                evaluativecreativeg...
-              </span>
-              <span className="text-[11.5px] text-[#777] text-left leading-[1.2]">
-                Free
-              </span>
+      <div className="mt-auto px-3 pt-4 border-t border-[#1a1a1a]">
+        <div className="relative flex items-center rounded-xl transition-colors px-1 py-2 gap-2">
+          {isSignedIn ? (
+            <div className="flex items-center rounded-full border border-white/10 bg-[#1a1a1a] px-1 py-1 shrink-0">
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: 'h-7 w-7',
+                  },
+                }}
+              />
             </div>
+          ) : (
+            <SignInButton mode="modal">
+              <button
+                type="button"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#1a1a1a] text-[12px] font-[600] text-[#f0f0f0] transition-colors hover:bg-[#252525]"
+                title="Sign in"
+              >
+                S
+              </button>
+            </SignInButton>
           )}
         </div>
       </div>

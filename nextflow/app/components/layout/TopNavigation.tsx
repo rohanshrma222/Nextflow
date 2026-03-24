@@ -1,20 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useTransition } from 'react';
-import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/nextjs';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { ChevronLeft, Download, Moon, Save, Upload, Wand2 } from 'lucide-react';
+import { ChevronLeft, ChevronUp, Download, Save, Upload } from 'lucide-react';
 import { saveWorkflow } from '@/actions/workflows';
 import { showToast } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import type { WorkflowData } from '@/types';
 
 export function TopNavigation({ workflowId }: { workflowId: string }) {
   const importRef = useRef<HTMLInputElement>(null);
-  const { workflowName, setWorkflowName, nodes, edges, setNodes, setEdges } =
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { workflowName, setWorkflowName, nodes, edges, setNodes, setEdges, historyPanelOpen } =
     useWorkflowStore();
-  const { isSignedIn } = useAuth();
   const [isSaving, startSaving] = useTransition();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleSave() {
     startSaving(async () => {
@@ -93,8 +94,22 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
     event.target.value = '';
   }
 
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, []);
+
   return (
-    <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-50 pointer-events-none">
+    <div
+      className="absolute top-4 left-4 flex justify-between items-start z-50 pointer-events-none transition-[right] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+      style={{ right: historyPanelOpen ? 356 : 16 }}
+    >
       <div
         className="pointer-events-auto flex items-center h-[48px] px-4 gap-4 rounded-[12px] shadow-sm outline outline-1 outline-[#262626]"
         style={{ background: '#202020' }}
@@ -122,10 +137,6 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
       </div>
 
       <div className="pointer-events-auto flex items-center gap-2">
-        <button className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] transition-colors">
-          <Moon size={14} />
-        </button>
-
         <button
           type="button"
           onClick={handleExport}
@@ -161,45 +172,34 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
           {isSaving ? 'Saving...' : 'Save'}
         </button>
 
-        <button className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] text-[12px] font-[500] transition-colors">
-          <Wand2 size={13} />
-          Share
-        </button>
-
-        {!isSignedIn && (
-          <>
-            <SignInButton mode="modal">
-              <button type="button" className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#f0f0f0] text-[12px] font-[500] transition-colors">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button type="button" className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#f0f0f0] hover:bg-white border border-white/10 text-[#0a0a0a] text-[12px] font-[600] transition-colors">
-                Create account
-              </button>
-            </SignUpButton>
-          </>
-        )}
-
-        {isSignedIn && (
-          <div className="flex items-center rounded-full border border-white/10 bg-[#1a1a1a] px-1 py-1">
-            <UserButton
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: 'h-7 w-7',
-                },
-              }}
+        <div ref={menuRef} className="relative ml-1">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            title="Open menu"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] transition-colors"
+          >
+            <ChevronUp
+              size={14}
+              className={cn('transition-transform duration-200', isMenuOpen && 'rotate-180')}
             />
-          </div>
-        )}
+          </button>
 
-        <button
-          onClick={useWorkflowStore.getState().toggleHistoryPanel}
-          title="Toggle run history"
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] transition-colors ml-1 leading-none font-bold"
-        >
-          ...
-        </button>
+          {isMenuOpen && (
+            <div className="absolute right-0 top-[calc(100%+8px)] min-w-[160px] rounded-xl border border-white/10 bg-[#111] p-1 shadow-[0_12px_30px_rgba(0,0,0,0.45)]">
+              <button
+                type="button"
+                onClick={() => {
+                  useWorkflowStore.getState().toggleHistoryPanel();
+                  setIsMenuOpen(false);
+                }}
+                className="flex w-full items-center rounded-lg px-3 py-2 text-left text-[13px] font-[500] text-[#d8d8d8] transition-colors hover:bg-white/5"
+              >
+                Version history
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

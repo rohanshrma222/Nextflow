@@ -176,3 +176,28 @@ html, body {
   background: var(--bg3);
 }
 .upload-zone:hover { border-color: rgba(155,109,255,0.4); background: rgba(155,109,255,0.08); }
+
+.btm-ctrl-btn {
+  background: #202020;
+  color: rgba(255,255,255,0.85);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.btm-ctrl-btn:not(:disabled):hover {
+  background: #505050 !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.18) !important;
+}
+.btm-ctrl-btn:disabled {
+  opacity: 0.4;
+}
+
+.btm-ctrl-shortcuts {
+  background: #202020;
+  color: rgba(255,255,255,0.85);
+  transition: background 0.15s, color 0.15s;
+}
+.btm-ctrl-shortcuts:hover {
+  background: #505050 !important;
+  color: #ffffff !important;
+}

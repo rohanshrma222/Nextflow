@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
+  X,
   XCircle,
 } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
@@ -86,7 +87,7 @@ function NodeRunEntry({ nodeResult }: { nodeResult: NodeRunResult }) {
 }
 
 export function RightSidebar() {
-  const { runs, historyPanelOpen, loadRuns } = useWorkflowStore();
+  const { runs, historyPanelOpen, loadRuns, toggleHistoryPanel } = useWorkflowStore();
   const [expandedRun, setExpandedRun] = useState<number | null>(null);
 
   useEffect(() => {
@@ -108,9 +109,19 @@ export function RightSidebar() {
         <h2 className="text-[14px] font-[600] text-[#f0f0f0]">
           Workflow History
         </h2>
-        <span className="text-[11px] font-[500] px-2 py-0.5 rounded bg-white/5 text-[#a0a0a0]">
-          {runs.length} runs
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-[500] px-2 py-0.5 rounded bg-white/5 text-[#a0a0a0]">
+            {runs.length} runs
+          </span>
+          <button
+            type="button"
+            onClick={toggleHistoryPanel}
+            title="Close version history"
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-white/5 bg-[#1a1a1a] text-[#a0a0a0] transition-colors hover:bg-[#252525] hover:text-white"
+          >
+            <X size={13} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
