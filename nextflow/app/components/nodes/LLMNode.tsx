@@ -1,25 +1,18 @@
 'use client';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { MessageSquare, Play } from 'lucide-react';
-import { NodeHeader } from '@/components/ui/NodeHeader';
-import { NodeField } from '@/components/ui/NodeField';
-import { Button } from '@/components/ui/Button';
+import { MessageSquare, Play, Trash2, Copy, Loader2, ChevronDown } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 import { triggerTask, pollTaskResult } from '@/lib/triggerClient';
 import { resolveNodeInputs } from '@/lib/resolveNodeInputs';
 import { cn } from '@/lib/cn';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const MODELS = [
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
   { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite' },
   { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-];
-
-const INPUT_HANDLES = [
-  { id: 'system_prompt', label: 'system prompt', tag: 'optional', tagColor: '#505050' },
-  { id: 'user_message', label: 'user message', tag: 'required', tagColor: '#f87171' },
-  { id: 'images', label: 'images', tag: 'optional - multi', tagColor: '#505050' },
 ];
 
 function normalizeImageInputs(value: unknown): string[] {
@@ -39,28 +32,35 @@ function normalizeImageInputs(value: unknown): string[] {
 }
 
 export function LLMNode({ id, data, selected }: NodeProps) {
-  const { updateNodeData, updateNodeStatus, addRun } = useWorkflowStore();
+  const { updateNodeData, updateNodeStatus, addRun, deleteNode, duplicateNode } = useWorkflowStore();
   const isRunning = data.status === 'running';
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
 
-  async function handleRun() {
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClose = (e: MouseEvent) => {
+      const menuEl = document.getElementById('llm-node-context-menu');
+      if (menuEl && menuEl.contains(e.target as Node)) return;
+      setContextMenu(null);
+    };
+    document.addEventListener('mousedown', handleClose, { capture: true });
+    return () => document.removeEventListener('mousedown', handleClose, { capture: true });
+  }, [contextMenu]);
+
+  async function handleRun(e?: React.MouseEvent) {
+    if (e) e.stopPropagation();
     const startTime = Date.now();
-
     updateNodeStatus(id, 'running');
     updateNodeData(id, { output: null, error: null });
 
     try {
       const { nodes, edges } = useWorkflowStore.getState();
       const inputs = resolveNodeInputs(id, nodes, edges);
-
-      const systemPrompt =
-        (inputs.system_prompt as string) ?? (data.systemPrompt as string) ?? '';
-      const userMessage =
-        (inputs.user_message as string) ?? (data.userMessage as string) ?? '';
+      const systemPrompt = (inputs.system_prompt as string) ?? (data.systemPrompt as string) ?? '';
+      const userMessage = (inputs.user_message as string) ?? (data.userMessage as string) ?? '';
       const images = normalizeImageInputs(inputs.images);
 
-      if (!userMessage.trim()) {
-        throw new Error('No user message connected');
-      }
+      if (!userMessage.trim()) throw new Error('No user message connected');
 
       const { runId } = await triggerTask('run-llm', {
         model: (data.model as string) ?? 'gemini-2.5-flash',
@@ -84,123 +84,177 @@ export function LLMNode({ id, data, selected }: NodeProps) {
         scopeLabel: 'Single Node',
         status: 'success',
         durationMs,
-        nodeResults: [
-          {
-            nodeId: id,
-            nodeName: `LLM Node (${id})`,
-            status: 'success',
-            durationMs,
-            output,
-          },
-        ],
+        nodeResults: [{
+          nodeId: id,
+          nodeName: `LLM Node (${id})`,
+          status: 'success',
+          durationMs,
+          output,
+        }],
       });
     } catch (error) {
       updateNodeStatus(id, 'failed');
-      updateNodeData(id, {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      updateNodeData(id, { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
+  const selectedModelLabel = MODELS.find(m => m.value === (data.model || 'gemini-2.5-flash'))?.label;
+
   return (
-    <div
-      className={cn('flow-node group', isRunning && 'node-running', selected && 'selected')}
-      style={{ position: 'relative' }}
+    <div 
+      className={cn('flow-node group flex flex-col', isRunning && 'node-running', selected && 'selected')}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setContextMenu({ x: e.clientX, y: e.clientY });
+      }}
     >
-      <NodeHeader
-        nodeId={id}
-        title="Run Any LLM"
-        iconBg="rgba(155,109,255,0.15)"
-        icon={<MessageSquare size={11} color="#9b6dff" />}
-        status={data.status}
-        onRun={handleRun}
-      />
+      {/* Dynamic Header outside the main box */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[14px] text-[#8a8a8a] font-medium leading-none pl-1">
+          {selectedModelLabel}
+        </span>
+        <span className="text-[10px] text-[#555] font-medium pr-1">LLM</span>
+      </div>
 
-      <div className="px-3 pt-[10px] pb-3">
-        <NodeField label="Model">
-          <select
-            className="node-select"
-            value={(data.model as string) ?? 'gemini-2.5-flash'}
-            onChange={(e) => updateNodeData(id, { model: e.target.value })}
-          >
-            {MODELS.map((model) => (
-              <option key={model.value} value={model.value}>
-                {model.label}
-              </option>
-            ))}
-          </select>
-        </NodeField>
-
-        <div className="mt-2 space-y-2">
-          {INPUT_HANDLES.map((handle) => (
-            <div key={handle.id} className="flex items-center justify-between pl-3">
-              <span className="text-[10px] text-[#505050]">{handle.label}</span>
-              <span className="text-[9px]" style={{ color: handle.tagColor }}>
-                {handle.tag}
-              </span>
-            </div>
-          ))}
+      {/* Main Node Box */}
+      <div className={cn(
+        "w-[260px] rounded-[12px] border-[2.0px] bg-[#202020] flex flex-col relative shadow-xl transition-colors duration-[400ms]",
+        selected ? "border-[#9b6dff]" : "border-[transparent]"
+      )}>
+        
+        {/* Top Preview Area (Flush with top border) */}
+        <div className="bg-[#141414] w-full min-h-[140px] rounded-t-[10px] flex items-center justify-center p-3 border-b border-[#2a2a2a] relative">
+           {isRunning && (
+             <div className="absolute inset-0 bg-[#141414]/60 flex items-center justify-center rounded-t-[10px] z-10 backdrop-blur-[2px]">
+                <Loader2 size={24} className="text-[#9b6dff] animate-spin drop-shadow-[0_0_6px_rgba(155,109,255,0.4)]" />
+             </div>
+           )}
+           {data.error ? (
+             <span className="text-[12px] text-[#ef4444]">{data.error as string}</span>
+           ) : data.output ? (
+             <div className="w-full max-h-[220px] overflow-y-auto text-left text-[12px] text-[#cccccc] leading-[1.6] scrollbar-hide py-1 font-sans">
+               {data.output as string}
+             </div>
+           ) : (
+             <span className="text-[12px] text-[#555555]">Results will appear here</span>
+           )}
         </div>
 
-        {data.output && (
-          <div
-            className="mt-3 bg-[#1a1a1a] border border-[rgba(255,255,255,0.07)] rounded-[6px] p-2 text-[11px] text-[#a0a0a0] leading-[1.6] max-h-[110px] overflow-y-auto"
-            style={{ fontFamily: 'var(--mono)' }}
-          >
-            {data.output as string}
-          </div>
-        )}
+        {/* Bottom Config Area */}
+        <div className="flex flex-col pt-3 pb-4">
+           {/* Output Handle Row */}
+           <div className="relative flex items-center justify-end px-[18px] mb-4">
+              <span className="text-[12px] text-[#888] font-medium mr-2">Output</span>
+              <Handle type="source" position={Position.Right} id="output" className="!bg-[#9b6dff] !border-none !w-[10px] !h-[10px] !right-[-7px] !top-[8px] z-50 shadow-[0_0_0_5px_rgba(155,109,255,0.15)]" />
+           </div>
 
-        {data.error && (
-          <p className="mt-3 text-[10px] text-[#f87171] leading-[1.5]">
-            {data.error as string}
-          </p>
-        )}
+           {/* Model Dropdown Row */}
+           <div className="flex items-center justify-between px-[18px] mb-4">
+              <span className="text-[12px] text-[#777777] font-medium">Model</span>
+              <div className="relative group">
+                 <MessageSquare size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#888888] group-hover:text-[#9b6dff] transition-colors" />
+                 <select
+                   className="w-[140px] h-[26px] bg-[#111111] border border-[#2a2a2a] rounded-[6px] pl-7 pr-2 text-[11px] text-[#cccccc] font-medium outline-none focus:border-[#9b6dff] transition-colors appearance-none cursor-pointer"
+                   value={(data.model as string) ?? 'gemini-2.5-flash'}
+                   onChange={(e) => updateNodeData(id, { model: e.target.value })}
+                 >
+                   {MODELS.map((model) => (
+                     <option key={model.value} value={model.value}>{model.label}</option>
+                   ))}
+                 </select>
+                 <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#555] pointer-events-none" />
+              </div>
+           </div>
 
-        <Button
-          variant="node"
-          loading={isRunning}
-          icon={!isRunning ? <Play size={10} /> : undefined}
-          className="mt-3"
-          onClick={handleRun}
-        >
-          {isRunning ? 'Running...' : 'Run Node'}
-        </Button>
+           {/* Input Handles Row */}
+           <div className="relative flex flex-col px-[18px] gap-3">
+              <div className="relative flex items-center min-h-[16px]">
+                <Handle type="target" position={Position.Left} id="system_prompt" className="!bg-[#9b6dff] !border-none !w-[10px] !h-[10px] !left-[-7px] !top-1/2 z-50 shadow-[0_0_0_5px_rgba(155,109,255,0.15)] flex justify-center items-center" />
+                <span className="text-[12px] text-[#777777] font-medium ml-2">System Prompt</span>
+              </div>
+              <div className="relative flex items-center min-h-[16px]">
+                <Handle type="target" position={Position.Left} id="user_message" className="!bg-[#9b6dff] !border-none !w-[10px] !h-[10px] !left-[-7px] !top-1/2 z-50 shadow-[0_0_0_5px_rgba(155,109,255,0.15)] flex justify-center items-center" />
+                <span className="text-[12px] text-[#dddddd] font-medium ml-2">User Message</span>
+              </div>
+              <div className="relative flex items-center min-h-[16px]">
+                <Handle type="target" position={Position.Left} id="images" className="!bg-[#9b6dff] !border-none !w-[10px] !h-[10px] !left-[-7px] !top-1/2 z-50 shadow-[0_0_0_5px_rgba(155,109,255,0.15)] flex justify-center items-center" />
+                <span className="text-[12px] text-[#777777] font-medium ml-2">Images</span>
+              </div>
+           </div>
 
-        <div className="flex justify-end mt-3 pr-2">
-          <span className="text-[10px] text-[#505050]">output (text)</span>
+           {/* Action Button */}
+           <div className="px-[18px] pt-5">
+             <button
+               onClick={handleRun}
+               disabled={isRunning}
+               className="w-full h-[32px] bg-[#9b6dff] hover:bg-[#8659eb] text-white rounded-[6px] flex justify-center items-center gap-2 text-[13px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               {isRunning ? (
+                 <>
+                   <Loader2 size={13} className="animate-spin" />
+                   <span>Running...</span>
+                 </>
+               ) : (
+                 <>
+                   <Play size={13} className="fill-current" />
+                   <span>Run Node</span>
+                 </>
+               )}
+             </button>
+           </div>
         </div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="system_prompt"
-        style={{ top: 108, background: '#222', borderColor: 'rgba(255,255,255,0.2)' }}
-        title="Input: System Prompt (Text)"
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="user_message"
-        style={{ top: 132, background: '#222', borderColor: 'rgba(255,255,255,0.2)' }}
-        title="Input: User Message (Text)"
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="images"
-        style={{ top: 156, background: '#222', borderColor: 'rgba(255,255,255,0.2)' }}
-        title="Input: Images (Image)"
-      />
+      {/* Context Menu */}
+      {contextMenu && typeof document !== 'undefined' && createPortal(
+        <div 
+          id="llm-node-context-menu"
+          className="fixed z-[99999] bg-[#111111] border border-white/5 rounded-[12px] p-1.5 shadow-2xl min-w-[210px] animate-menu flex flex-col"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <button 
+            className="flex items-center justify-between w-full p-2.5 hover:bg-white/5 text-[#cccccc] font-medium rounded-[8px] text-[13px] text-left transition-colors"
+            onClick={() => {
+              setContextMenu(null);
+              duplicateNode?.(id);
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Copy size={16} /> 
+              Duplicate
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-[#666666] font-sans font-medium">
+              <span className="bg-white/10 px-1.5 py-0.5 rounded-[4px]">⌘</span>
+              <span className="bg-white/10 px-1.5 py-0.5 rounded-[4px]">D</span>
+            </div>
+          </button>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="output"
-        style={{ top: '50%', background: '#9b6dff', borderColor: '#7c4dff' }}
-        title="Output: LLM Response"
-      />
+          <div className="h-[1px] bg-white/5 my-1 mx-1" />
+
+          <button 
+            className="flex items-center justify-between w-full p-2.5 hover:bg-red-500/10 text-[#ef4444] font-medium rounded-[8px] text-[13px] text-left transition-colors"
+            onClick={() => {
+              setContextMenu(null);
+              deleteNode(id);
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Trash2 size={16} /> 
+              Delete
+            </div>
+            <div className="flex items-center gap-1 text-[11px] text-red-500/50 font-sans">
+              <span className="bg-red-500/10 px-1.5 py-0.5 rounded-[4px] leading-none">⌫</span>
+            </div>
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useWorkflowStore } from '@/store/workflowStore';
-import { ChevronLeft, ChevronUp, Download, Save, Upload } from 'lucide-react';
+import { ChevronDown, ChevronUp, Download, Save, Upload } from 'lucide-react';
 import { saveWorkflow } from '@/actions/workflows';
 import { showToast } from '@/lib/utils';
 import { cn } from '@/lib/cn';
@@ -107,29 +107,33 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
 
   return (
     <div
-      className="absolute top-4 left-4 flex justify-between items-start z-50 pointer-events-none transition-[right] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+      className="absolute top-4 left-[18px] flex justify-between items-start z-50 pointer-events-none transition-[right] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
       style={{ right: historyPanelOpen ? 356 : 16 }}
     >
+      {/* Unified Logo and Title Container */}
       <div
-        className="pointer-events-auto flex items-center h-[48px] px-4 gap-4 rounded-[12px] shadow-sm outline outline-1 outline-[#262626]"
+        className="pointer-events-auto flex items-center h-[50px] px-2 gap-2 rounded-[12px] shadow-sm outline outline-1 outline-[#262626] transition-all duration-300 w-auto"
         style={{ background: '#202020' }}
       >
-        <Link href="/nodes" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <ChevronLeft size={14} color="#f0f0f0" strokeWidth={2} />
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-            <ellipse cx="11" cy="8.5" rx="5" ry="6" transform="rotate(-15 11 8.5)" fill="#f0f0f0" />
-            <ellipse cx="10" cy="22" rx="4.5" ry="5.5" transform="rotate(10 10 22)" fill="#f0f0f0" />
-            <ellipse cx="21.5" cy="14" rx="5.5" ry="6.5" transform="rotate(25 21.5 14)" fill="#f0f0f0" />
-            <circle cx="14.5" cy="15" r="4" fill="#f0f0f0" />
-          </svg>
-        </Link>
+        <button
+          type="button"
+          className="flex items-center gap-1.3 hover:bg-white/10 px-2 py-[4px] rounded-[8px] transition-colors focus:outline-none shrink-0"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/MainLogo.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
+          <ChevronDown size={14} color="#f0f0f0" strokeWidth={2.5} className="mt-[2px] opacity-80" />
+        </button>
+
         <span
-          contentEditable
+          contentEditable="plaintext-only"
           suppressContentEditableWarning
-          className="text-[14.5px] font-[500] text-[#f0f0f0] bg-transparent outline-none cursor-text hover:bg-white/5 py-[3px] rounded-[6px] tracking-[-0.01em] transition-colors"
-          onBlur={(e) => setWorkflowName(e.currentTarget.textContent ?? workflowName)}
+          className="text-[14.5px] font-[500] text-[#f0f0f0] bg-transparent outline-none cursor-text px-2 py-[4px] ml-[-10px] rounded-[7px] tracking-[-0.01em] transition-all duration-300 hover:bg-white/10 focus:bg-white/10 focus:ring-1 focus:ring-[#333] min-w-[30px] max-w-[400px] whitespace-nowrap overflow-hidden inline-block"
+          onBlur={(e) => setWorkflowName(e.currentTarget.textContent?.trim() || 'Untitled')}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur();
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
           }}
         >
           {workflowName || 'Untitled'}
