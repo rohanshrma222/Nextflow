@@ -1,20 +1,20 @@
 'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import {
   FolderKanban,
   Grid2x2,
-  Home,
   ImageIcon,
   MoreHorizontal,
   MonitorPlay,
-  Package2,
   Plus,
-  Sparkles,
   Video,
 } from 'lucide-react';
+
 import { createWorkflow, type SavedWorkflowData } from '@/actions/workflows';
+import { LeftSidebar } from '@/components/layout/LeftSidebar';
 
 function formatUpdatedAt(date: Date) {
   return new Date(date).toLocaleString([], {
@@ -43,54 +43,12 @@ export function WorkflowLibrary({
   }
 
   return (
-    <div className="min-h-screen bg-[#0c0c0c] text-[#f0f0f0]">
-      <div className="flex min-h-screen">
-        <aside className="w-[252px] border-r border-white/5 bg-black px-2 py-4">
-          <div className="mb-8 px-3">
-            <div className="flex h-10 items-center gap-3 rounded-xl px-3 text-[#f0f0f0]">
-              <div className="h-5 w-5 rounded-[5px] border border-white/20" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            {[
-              ['Home', Home],
-              ['Train Lora', Sparkles],
-              ['Node Editor', Package2],
-              ['Assets', FolderKanban],
-            ].map(([label, Icon]) => (
-              <div
-                key={label}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] ${
-                  label === 'Node Editor'
-                    ? 'bg-white/10 text-white'
-                    : 'text-[#d0d0d0]'
-                }`}
-              >
-                <Icon size={18} />
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 px-4 text-[12px] uppercase tracking-[0.2em] text-[#666]">
-            Tools
-          </div>
-          <div className="mt-2 space-y-1 px-2">
-            {['Image', 'Video', 'Enhancer', 'Nano Banana', 'Realtime', 'Edit', 'More'].map((label) => (
-              <div
-                key={label}
-                className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-[14px] text-[#d0d0d0]"
-              >
-                <span className="text-[16px] text-[#7a7a7a]">•</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        </aside>
+    <div className="h-screen bg-[#0c0c0c] text-[#f0f0f0]">
+      <div className="flex h-full">
+        <LeftSidebar />
 
         <main className="flex-1 overflow-y-auto">
-          <section className="relative h-[272px] overflow-hidden border-b border-white/5">
+          <section className="relative h-[400px] overflow-hidden border-b border-white/5">
             <img
               src="/img.png"
               alt="Workflow library hero"
@@ -98,15 +56,15 @@ export function WorkflowLibrary({
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.45))]" />
             <div className="relative z-10 mx-auto flex h-full max-w-[980px] flex-col justify-center px-10">
-              <div className="max-w-[520px]">
-                <h1 className="text-[18px] font-[600] leading-[1.6] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
-                  Nodes is the most powerful way to operate Krea. Connect every
+              <div className="max-w-[420px]">
+                <h1 className="text-[15px] font-[600] leading-[1.6] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
+                  Nodes is the most powerful way to operate Nextflow. Connect every
                   tool and model into complex automated pipelines.
                 </h1>
                 <button
                   type="button"
                   onClick={handleCreateWorkflow}
-                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-[18px] font-[600] text-[#0b0b0b] transition-transform hover:scale-[1.01]"
+                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-[13px] font-[600] text-[#0b0b0b] transition-transform hover:scale-[1.01]"
                 >
                   {isCreating ? 'Creating...' : 'New Workflow'}
                   <span aria-hidden>{'->'}</span>
