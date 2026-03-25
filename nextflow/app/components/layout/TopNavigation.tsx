@@ -243,7 +243,7 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
           type="button"
           onClick={handleRunWorkflow}
           disabled={isRunningWorkflow}
-          className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-[#252525] text-[#f0f0f0] transition-colors hover:bg-[#333] disabled:opacity-50 sm:h-8 sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-3"
+          className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-[#252525] text-[12px] text-[#f0f0f0] transition-colors hover:bg-[#333] disabled:opacity-50 sm:h-8 sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-3"
         >
           <Play size={13} />
           <span className="hidden sm:inline">

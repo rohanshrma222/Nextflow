@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { SignInButton, UserButton, useAuth } from '@clerk/nextjs';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, Search } from 'lucide-react';
 import { useWorkflowStore } from '@/store/workflowStore';
 import { buildNode } from '@/lib/utils';
 import { NODE_DEFINITIONS, NodeType } from '@/types';
@@ -58,6 +58,7 @@ export function LeftSidebar() {
   const { isSignedIn } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [draggingType, setDraggingType] = useState<NodeType | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleClick = useCallback((type: NodeType) => {
     const cx = window.innerWidth / 2 + (Math.random() * 60 - 30);
@@ -71,6 +72,17 @@ export function LeftSidebar() {
     e.dataTransfer.setData('application/nextflow-node', type);
     e.dataTransfer.effectAllowed = 'copy';
   }, []);
+
+  const filteredNodes = NODE_DEFINITIONS.filter((def) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    return (
+      def.label.toLowerCase().includes(query)
+      || def.description.toLowerCase().includes(query)
+      || def.type.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <aside
@@ -92,7 +104,22 @@ export function LeftSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-3">
-        <div className="flex flex-col gap-[0.1px] w-full mt-2">
+        {!isCollapsed && (
+          <div className="mb-3">
+            <div className="relative">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search nodes"
+                className="h-10 w-full rounded-xl border border-white/5 bg-[#101010] pl-9 pr-3 text-[13px] text-[#f0f0f0] outline-none placeholder:text-[#666] focus:border-white/10"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 w-full mt-2">
           <Link
             href="/nodes"
             title={isCollapsed ? 'Home' : undefined}
@@ -113,30 +140,38 @@ export function LeftSidebar() {
             </span>
           </Link>
 
-          {NODE_DEFINITIONS.map((def) => (
-            <button
-              key={def.type}
-              draggable
-              onDragStart={(e) => handleDragStart(e, def.type)}
-              onDragEnd={() => setDraggingType(null)}
-              onClick={() => handleClick(def.type)}
-              title={isCollapsed ? def.label : undefined}
-              className={cn(
-                'flex items-center rounded-xl px-1 py-2 gap-1 hover:bg-[#111] transition-colors duration-200 cursor-grab active:cursor-grabbing w-full',
-                draggingType === def.type && 'opacity-50',
-              )}
-            >
-              <div className="flex items-center justify-center w-8 h-6 rounded-[6px] shrink-0">
-                {ICONS[def.type]}
-              </div>
-              <span
-                className="text-[14.5px] font-[500] whitespace-nowrap transition-[opacity,max-width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden"
-                style={{ opacity: isCollapsed ? 0 : 1, maxWidth: isCollapsed ? 0 : 200 }}
+          <div className="flex flex-col gap-[0.1px] w-full">
+            {filteredNodes.map((def) => (
+              <button
+                key={def.type}
+                draggable
+                onDragStart={(e) => handleDragStart(e, def.type)}
+                onDragEnd={() => setDraggingType(null)}
+                onClick={() => handleClick(def.type)}
+                title={isCollapsed ? def.label : undefined}
+                className={cn(
+                  'flex w-full items-center gap-1 rounded-xl px-1 py-2 transition-colors duration-200 hover:bg-[#111] cursor-grab active:cursor-grabbing',
+                  draggingType === def.type && 'opacity-50',
+                )}
               >
-                {def.label}
-              </span>
-            </button>
-          ))}
+                <div className="flex h-8 w-8 items-center justify-center rounded-[6px] shrink-0">
+                  {ICONS[def.type]}
+                </div>
+                <span
+                  className="overflow-hidden whitespace-nowrap text-[14.5px] font-[500] text-[#f0f0f0] transition-[opacity,max-width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                  style={{ opacity: isCollapsed ? 0 : 1, maxWidth: isCollapsed ? 0 : 200 }}
+                >
+                  {def.label}
+                </span>
+              </button>
+            ))}
+
+            {!isCollapsed && filteredNodes.length === 0 && (
+              <div className="px-2 py-4 text-[12px] text-[#666]">
+                No nodes match &quot;{searchQuery}&quot;.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
