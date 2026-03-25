@@ -16,9 +16,9 @@ export function BottomToolbar() {
   ];
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto mb-[-10px]">
+    <div className="absolute bottom-4 left-1/2 z-50 w-[calc(100%-24px)] max-w-max -translate-x-1/2 pointer-events-auto sm:bottom-6 sm:w-auto">
       <div 
-        className="flex items-center gap-1 p-1 rounded-2xl"
+        className="flex items-center justify-center gap-1 rounded-2xl p-1"
         style={{ background: '#1a1a1a', border: '2px solid rgba(255,255,255,0.08)' }}
       >
         {tools.map((t) => (
@@ -26,10 +26,10 @@ export function BottomToolbar() {
             key={t.id}
             onClick={() => setActive(t.id)}
             className={cn(
-              "w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200",
+              'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 sm:h-11 sm:w-11',
               active === t.id 
-                ? "bg-[#333] text-white shadow-sm" 
-                : "text-white hover:bg-[#404040]"
+                ? 'bg-[#333] text-white shadow-sm' 
+                : 'text-white hover:bg-[#404040]'
             )}
           >
             {t.icon}

@@ -102,8 +102,8 @@ export function RightSidebar() {
 
   return (
     <aside
-      className="absolute top-0 right-0 h-full border-l border-white/5 z-40 flex flex-col"
-      style={{ width: 340, background: '#0a0a0a' }}
+      className="absolute top-0 right-0 z-40 flex h-full w-full max-w-full flex-col border-l border-white/5 sm:w-[340px] sm:max-w-[85vw]"
+      style={{ background: '#0a0a0a' }}
     >
       <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#111]">
         <h2 className="text-[14px] font-[600] text-[#f0f0f0]">

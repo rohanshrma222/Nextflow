@@ -132,19 +132,21 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
 
   return (
     <div
-      className="absolute top-4 left-[18px] flex justify-between items-start z-50 pointer-events-none transition-[right] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
-      style={{ right: historyPanelOpen ? 356 : 16 }}
+      className={cn(
+        'absolute top-3 left-3 right-3 z-50 flex items-start justify-between gap-2 pointer-events-none transition-[right] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] sm:top-4 sm:left-4 sm:right-4 xl:left-[18px]',
+        historyPanelOpen && 'xl:right-[356px]',
+      )}
     >
       {/* Unified Logo and Title Container */}
-      <div className="relative" ref={logoMenuRef}>
+      <div className="relative min-w-0 max-w-[calc(100%-148px)] sm:max-w-[calc(100%-180px)]" ref={logoMenuRef}>
         <div
-          className="pointer-events-auto flex items-center h-[50px] px-2 gap-2 rounded-[12px] shadow-sm outline outline-1 outline-[#262626] transition-all duration-300 w-auto"
+          className="pointer-events-auto flex h-[50px] min-w-0 max-w-full items-center gap-1.5 rounded-[12px] px-2 shadow-sm outline outline-1 outline-[#262626] transition-all duration-300 sm:gap-2"
           style={{ background: '#202020' }}
         >
           <button
             type="button"
             onClick={() => setIsLogoMenuOpen(!isLogoMenuOpen)}
-            className="flex items-center gap-1.3 hover:bg-white/10 px-2 py-[4px] rounded-[8px] transition-colors focus:outline-none shrink-0"
+            className="flex shrink-0 items-center gap-1.3 rounded-[8px] px-2 py-[4px] transition-colors hover:bg-white/10 focus:outline-none"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/MainLogo.png" alt="Logo" width={24} height={24} className="shrink-0 object-contain" />
@@ -154,7 +156,7 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
           <span
             contentEditable="plaintext-only"
             suppressContentEditableWarning
-          className="text-[14.5px] font-[500] text-[#f0f0f0] bg-transparent outline-none cursor-text px-2 py-[4px] ml-[-10px] rounded-[7px] tracking-[-0.01em] transition-all duration-300 hover:bg-white/10 focus:bg-white/10 focus:ring-1 focus:ring-[#333] min-w-[30px] max-w-[400px] whitespace-nowrap overflow-hidden inline-block"
+            className="ml-[-10px] inline-block min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[7px] bg-transparent px-2 py-[4px] text-[13.5px] font-[500] tracking-[-0.01em] text-[#f0f0f0] outline-none transition-all duration-300 hover:bg-white/10 focus:bg-white/10 focus:ring-1 focus:ring-[#333] sm:text-[14.5px]"
             onBlur={(e) => setWorkflowName(e.currentTarget.textContent?.trim() || 'Untitled')}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -171,64 +173,64 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
         {isLogoMenuOpen && (
           <>
             {/* Invisible Backdrop for bulletproof click-away */}
-            <div 
+            <div
               className="fixed inset-0 z-[90] pointer-events-auto"
               onClick={() => {
                 setIsLogoMenuOpen(false);
                 setIsWorkspacesOpen(false);
               }}
             />
-            
-            <div className="animate-menu absolute top-[calc(100%+8px)] left-0 w-[255px] bg-[#202020] border border-[#2a2a2a] rounded-[14px] shadow-[0_12px_30px_rgba(0,0,0,0.6)] py-2 flex flex-col z-[100] outline outline-1 outline-black/20 pointer-events-auto">
-            
-            <Link href="/nodes" className="flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-[8px] hover:bg-[#171717] transition-colors text-[13px] font-[500] text-[#eaeaea]">
-              <ChevronLeft size={16} className="text-[#a0a0a0]" strokeWidth={2.5} />
-              Back
-            </Link>
 
-            <div className="h-[12px]" />
+            <div className="animate-menu absolute top-[calc(100%+8px)] left-0 z-[100] flex w-[min(255px,calc(100vw-24px))] flex-col rounded-[14px] border border-[#2a2a2a] bg-[#202020] py-2 shadow-[0_12px_30px_rgba(0,0,0,0.6)] outline outline-1 outline-black/20 pointer-events-auto sm:w-[255px]">
 
-            <button type="button" onClick={() => { importRef.current?.click(); setIsLogoMenuOpen(false); }} className="flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-[8px] hover:bg-[#171717] transition-colors text-[13px] font-[500] text-[#eaeaea] text-left">
-              <Upload size={16} className="text-[#a0a0a0]" />
-              Import
-            </button>
+              <Link href="/nodes" className="mx-1.5 flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-[13px] font-[500] text-[#eaeaea] transition-colors hover:bg-[#171717]">
+                <ChevronLeft size={16} className="text-[#a0a0a0]" strokeWidth={2.5} />
+                Back
+              </Link>
 
-            <button type="button" onClick={() => { handleExport(); setIsLogoMenuOpen(false); }} className="flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded-[8px] hover:bg-[#171717] transition-colors text-[13px] font-[500] text-[#eaeaea] text-left">
-              <Download size={16} className="text-[#a0a0a0]" />
-              Export
-            </button>
+              <div className="h-[12px]" />
 
-            <div 
-              className="relative mt-1"
-              onMouseEnter={() => setIsWorkspacesOpen(true)}
-              onMouseLeave={() => setIsWorkspacesOpen(false)}
-            >
-              <div className="flex items-center justify-between px-3 py-2.5 hover:bg-[#171717] mx-1.5 rounded-[8px] transition-colors text-[13px] font-[500] text-[#eaeaea] cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <Users size={16} className="text-[#a0a0a0]" />
-                  Workspaces
-                </div>
-                <ChevronRight size={16} className="text-[#a0a0a0]" />
-              </div>
+              <button type="button" onClick={() => { importRef.current?.click(); setIsLogoMenuOpen(false); }} className="mx-1.5 flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-left text-[13px] font-[500] text-[#eaeaea] transition-colors hover:bg-[#171717]">
+                <Upload size={16} className="text-[#a0a0a0]" />
+                Import
+              </button>
 
-              {isWorkspacesOpen && (
-                <div className="animate-menu absolute top-0 left-[calc(100%+8px)] w-[260px] bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] shadow-[0_12px_30px_rgba(0,0,0,0.6)] py-3 px-2 z-[100] outline outline-1 outline-black/20 overflow-hidden">
-                  <div className="px-3 pb-3 text-[12px] font-[600] text-[#888] tracking-wide">Workspaces</div>
-                  <div className="flex items-center gap-3 px-3 py-2.5 bg-[#171717] rounded-[8px] transition-colors text-[13px] font-[500] text-[#eaeaea] cursor-pointer outline outline-1 outline-white/5">
-                    <div className="w-[28px] h-[28px] rounded-[6px] bg-[#1a1a1a] flex items-center justify-center border border-[#333] shrink-0">
-                       <User size={14} className="text-[#a0a0a0]" />
-                    </div>
-                    Default Workspace
+              <button type="button" onClick={() => { handleExport(); setIsLogoMenuOpen(false); }} className="mx-1.5 flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-left text-[13px] font-[500] text-[#eaeaea] transition-colors hover:bg-[#171717]">
+                <Download size={16} className="text-[#a0a0a0]" />
+                Export
+              </button>
+
+              <div
+                className="relative mt-1"
+                onMouseEnter={() => setIsWorkspacesOpen(true)}
+                onMouseLeave={() => setIsWorkspacesOpen(false)}
+              >
+                <div className="mx-1.5 flex cursor-pointer items-center justify-between rounded-[8px] px-3 py-2.5 text-[13px] font-[500] text-[#eaeaea] transition-colors hover:bg-[#171717]">
+                  <div className="flex items-center gap-3">
+                    <Users size={16} className="text-[#a0a0a0]" />
+                    Workspaces
                   </div>
+                  <ChevronRight size={16} className="text-[#a0a0a0]" />
                 </div>
-              )}
+
+                {isWorkspacesOpen && (
+                  <div className="animate-menu absolute left-0 top-[calc(100%+8px)] z-[100] w-[min(260px,calc(100vw-24px))] overflow-hidden rounded-[14px] border border-[#2a2a2a] bg-[#1a1a1a] px-2 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.6)] outline outline-1 outline-black/20 sm:w-[260px] xl:left-[calc(100%+8px)] xl:top-0">
+                    <div className="px-3 pb-3 text-[12px] font-[600] tracking-wide text-[#888]">Workspaces</div>
+                    <div className="flex cursor-pointer items-center gap-3 rounded-[8px] bg-[#171717] px-3 py-2.5 text-[13px] font-[500] text-[#eaeaea] transition-colors outline outline-1 outline-white/5">
+                      <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-[6px] border border-[#333] bg-[#1a1a1a]">
+                        <User size={14} className="text-[#a0a0a0]" />
+                      </div>
+                      Default Workspace
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-    </>
+          </>
         )}
       </div>
 
-      <div className="pointer-events-auto flex items-center gap-2">
+      <div className="pointer-events-auto flex shrink-0 items-center gap-2">
         <input
           ref={importRef}
           type="file"
@@ -241,20 +243,22 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
           type="button"
           onClick={handleRunWorkflow}
           disabled={isRunningWorkflow}
-          className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#7c4dff] hover:bg-[#6f44ea] border border-white/10 text-[#f0f0f0] text-[12px] font-[600] transition-colors disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-[#252525] text-[#f0f0f0] transition-colors hover:bg-[#333] disabled:opacity-50 sm:h-8 sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-3"
         >
           <Play size={13} />
-          {isRunningWorkflow ? 'Running...' : 'Run Workflow'}
+          <span className="hidden sm:inline">
+            {isRunningWorkflow ? 'Running...' : 'Run Workflow'}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-1.5 px-3 h-8 rounded-full bg-[#252525] hover:bg-[#333] border border-white/10 text-[#f0f0f0] text-[12px] font-[500] transition-colors disabled:opacity-50"
+          className="hidden h-8 items-center gap-1.5 rounded-full border border-white/10 bg-[#252525] px-3 text-[12px] font-[500] text-[#f0f0f0] transition-colors hover:bg-[#333] disabled:opacity-50 sm:flex"
         >
           <Save size={13} />
-          {isSaving ? 'Saving...' : 'Save'}
+          <span>{isSaving ? 'Saving...' : 'Save'}</span>
         </button>
 
         <div ref={menuRef} className="relative ml-1">
@@ -262,7 +266,7 @@ export function TopNavigation({ workflowId }: { workflowId: string }) {
             type="button"
             onClick={() => setIsMenuOpen((open) => !open)}
             title="Open menu"
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] hover:bg-[#252525] border border-white/5 text-[#a0a0a0] transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/5 bg-[#1a1a1a] text-[#a0a0a0] transition-colors hover:bg-[#252525] sm:h-8 sm:w-8 sm:rounded-full"
           >
             <ChevronDown
               size={14}

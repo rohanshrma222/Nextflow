@@ -39,22 +39,24 @@ export function BottomLeftControls() {
   const { undo, redo, past, future } = useWorkflowStore();
 
   return (
-    <div className="absolute bottom-4 left-4 z-[9999] pointer-events-auto flex items-center gap-1.5">
-      <ControlButton
-        icon={Undo2}
-        onClick={undo}
-        disabled={past.length === 0}
-        label="Undo"
-      />
-      <ControlButton
-        icon={Redo2}
-        onClick={redo}
-        disabled={future.length === 0}
-        label="Redo"
-      />
-      <button className="btm-ctrl-shortcuts h-[36px] px-3 flex items-center gap-2 rounded-[11px] border border-white/5 text-[13px] font-[500] shadow-sm">
+    <div className="absolute bottom-4 left-4 z-[9999] flex flex-col gap-2 pointer-events-auto">
+      <div className="flex flex-col gap-2">
+        <ControlButton
+          icon={Undo2}
+          onClick={undo}
+          disabled={past.length === 0}
+          label="Undo"
+        />
+        <ControlButton
+          icon={Redo2}
+          onClick={redo}
+          disabled={future.length === 0}
+          label="Redo"
+        />
+      </div>
+      <button className="btm-ctrl-shortcuts flex h-[38px] w-[38px] items-center justify-center rounded-[12px] border border-white/5 shadow-sm sm:h-[36px] sm:w-auto sm:justify-start sm:gap-2 sm:rounded-[11px] sm:px-3">
         <Command size={15} />
-        Keyboard shortcuts
+        <span className="hidden text-[13px] font-[500] sm:inline">Keyboard shortcuts</span>
       </button>
     </div>
   );
