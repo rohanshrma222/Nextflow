@@ -70,34 +70,39 @@ export function WorkflowLibrary({
               alt="Workflow library hero"
               className="absolute inset-0 h-full w-full object-cover object-center scale-110"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.45))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.18)_42%,rgba(0,0,0,0.22)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_38%)]" />
             <div className="relative z-10 mx-auto flex h-full max-w-[980px] flex-col justify-center px-10">
-              <div className="max-w-[420px]">
-                <h1 className="text-[15px] font-[600] leading-[1.6] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
+              <div className="max-w-[540px] ml-[-100px]">
+                <div className="flex items-center gap-2">
+                  <img
+                    src="/NodeEditor.webp"
+                    alt="Node Editor"
+                    className="h-9 w-9 rounded-xl object-cover shadow-[0_16px_40px_rgba(12,109,255,0.28)]"
+                  />
+                  <h1 className="text-[30px] font-[400] tracking-[-0.04em] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.28)]">
+                    Node Editor
+                  </h1>
+                </div>
+                <p className="mt-5 max-w-[520px] text-[17px] font-[600] leading-[1.55] text-white/95 drop-shadow-[0_8px_24px_rgba(0,0,0,0.22)]">
                   Nodes is the most powerful way to operate Nextflow. Connect every
                   tool and model into complex automated pipelines.
-                </h1>
+                </p>
                 <button
                   type="button"
                   onClick={handleCreateWorkflow}
-                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-[13px] font-[600] text-[#0b0b0b] transition-transform hover:scale-[1.01]"
+                  className="mt-15 inline-flex items-center gap-3 rounded-full bg-white px-10 py-2 text-[15px] font-[400] text-[#0b0b0b] shadow-[0_20px_50px_rgba(0,0,0,0.18)] transition-transform hover:scale-[1.01]"
                 >
                   {isCreating ? 'Creating...' : 'New Workflow'}
-                  <span aria-hidden>{'->'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateSampleWorkflow}
-                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-8 py-4 text-[13px] font-[600] text-white backdrop-blur-sm transition-colors hover:bg-black/50"
-                >
-                  <CopyPlus size={15} />
-                  {isCreatingSample ? 'Loading Sample...' : 'Load Sample Workflow'}
+                  <span aria-hidden className="text-[14px] leading-none">
+                    {'->'}
+                  </span>
                 </button>
               </div>
             </div>
           </section>
 
-          <section className="mx-auto max-w-[980px] px-10 py-14">
+          <section className="mx-auto max-w-[980px] px-10 py-14 mr-[250px]">
             <div className="border-b border-white/10 pb-4">
               <div className="flex gap-12 text-[17px] text-white">
                 <button className="rounded-2xl bg-white/8 px-6 py-3 font-[500]">
