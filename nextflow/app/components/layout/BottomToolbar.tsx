@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, MousePointer2, Hand, Scissors, Link2 } from 'lucide-react';
+import { Plus, MousePointer2, Hand, Scissors, Workflow } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -12,7 +12,7 @@ export function BottomToolbar() {
     { id: 'cursor', icon: <MousePointer2 size={20} /> },
     { id: 'hand', icon: <Hand size={20} /> },
     { id: 'scissors', icon: <Scissors size={20} /> },
-    { id: 'link', icon: <Link2 size={20} /> },
+    { id: 'workflow', icon: <Workflow size={20} /> },
   ];
 
   return (

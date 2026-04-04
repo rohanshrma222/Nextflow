@@ -2,16 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import {
-  CopyPlus,
-  FolderKanban,
+  ChevronDown,
+  EyeOff,
   Grid2x2,
-  ImageIcon,
   MoreHorizontal,
-  MonitorPlay,
   Plus,
-  Video,
+  Search,
 } from 'lucide-react';
 
 import {
@@ -21,12 +19,17 @@ import {
 } from '@/actions/workflows';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 
-function formatUpdatedAt(date: Date) {
-  return new Date(date).toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+function formatEditedAgo(date: Date) {
+  const now = new Date();
+  const updated = new Date(date);
+  const diffDays = Math.max(
+    0,
+    Math.floor((now.getTime() - updated.getTime()) / (1000 * 60 * 60 * 24))
+  );
+
+  if (diffDays === 0) return 'Edited today';
+  if (diffDays === 1) return 'Edited 1 day ago';
+  return `Edited ${diffDays} days ago`;
 }
 
 export function WorkflowLibrary({
@@ -35,8 +38,12 @@ export function WorkflowLibrary({
   workflows: SavedWorkflowData[];
 }) {
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
   const [isCreating, startCreating] = useTransition();
   const [isCreatingSample, startCreatingSample] = useTransition();
+  const filteredWorkflows = workflows.filter((workflow) =>
+    workflow.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
   function handleCreateWorkflow() {
     startCreating(async () => {
@@ -73,7 +80,7 @@ export function WorkflowLibrary({
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.18)_42%,rgba(0,0,0,0.22)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_38%)]" />
             <div className="relative z-10 mx-auto flex h-full max-w-[980px] flex-col justify-center px-10">
-              <div className="max-w-[540px] ml-[-100px]">
+              <div className="ml-[-100px] max-w-[540px]">
                 <div className="flex items-center gap-2">
                   <img
                     src="/NodeEditor.webp"
@@ -102,15 +109,36 @@ export function WorkflowLibrary({
             </div>
           </section>
 
-          <section className="mx-auto max-w-[980px] px-10 py-14 mr-[250px]">
+          <section className="mx-auto max-w-[1380px] px-10 py-9">
             <div className="border-b border-white/10 pb-4">
-              <div className="flex gap-12 text-[17px] text-white">
-                <button className="rounded-2xl bg-white/8 px-6 py-3 font-[500]">
-                  Projects
-                </button>
-                <button className="py-3 text-[#d0d0d0]">Apps</button>
-                <button className="py-3 text-[#d0d0d0]">Examples</button>
-                <button className="py-3 text-[#d0d0d0]">Templates</button>
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap gap-10 text-[17px] text-white">
+                  <button className="rounded-2xl bg-white/8 px-6 py-3 font-[500]">
+                    Projects
+                  </button>
+                  <button className="py-3 text-white">Apps</button>
+                  <button className="py-3 text-white">Examples</button>
+                  <button className="py-3 text-white">Templates</button>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="flex h-11 min-w-[308px] items-center gap-3 rounded-[12px] border border-white/10 bg-white/[0.03] px-4 text-[#8f8f8f]">
+                    <Search size={18} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Search projects..."
+                      className="w-full bg-transparent text-[15px] text-white outline-none placeholder:text-[#8f8f8f]"
+                    />
+                  </label>
+                  <button className="flex h-11 items-center gap-7 rounded-[12px] border border-white/10 bg-white/[0.03] px-5 text-[15px] text-white">
+                    <span>Last viewed</span>
+                    <ChevronDown size={16} className="text-[#7d7d7d]" />
+                  </button>
+                  <button className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.03] text-[#7d7d7d]">
+                    <EyeOff size={18} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -144,82 +172,72 @@ export function WorkflowLibrary({
                   Learn More {'->'}
                 </button>
               </div>
+            ) : filteredWorkflows.length === 0 ? (
+              <div className="flex flex-col items-center py-24 text-center">
+                <div className="text-[28px] font-[600] tracking-[-0.02em] text-white">
+                  No matching projects
+                </div>
+                <p className="mt-3 max-w-[420px] text-[16px] leading-[1.6] text-[#8f8f8f]">
+                  No saved workflows match "{searchQuery}".
+                </p>
+              </div>
             ) : (
-              <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-7 grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2 xl:grid-cols-4">
                 <button
                   type="button"
                   onClick={handleCreateWorkflow}
-                  className="flex min-h-[220px] flex-col justify-between rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] p-6 text-left transition-colors hover:bg-white/[0.05]"
+                  className="group text-left"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
-                    <Plus size={22} />
-                  </div>
-                  <div>
-                    <div className="text-[22px] font-[600]">New workflow</div>
-                    <div className="mt-2 text-[14px] text-[#a0a0a0]">
-                      Create an empty node editor canvas
+                  <div className="flex aspect-[1.42/0.8] items-center justify-center rounded-[10px] border border-white/8 bg-[#262626] transition-colors group-hover:bg-[#2b2b2b]">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black">
+                      <Plus size={18} />
                     </div>
+                  </div>
+                  <div className="mt-2 text-[16px] font-[600] tracking-[-0.02em] text-white">
+                    New Workflow
                   </div>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCreateSampleWorkflow}
-                  className="flex min-h-[220px] flex-col justify-between rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#19191d,#101014)] p-6 text-left transition-colors hover:bg-white/[0.05]"
+                  className="group text-left"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#7c4dff,#9b6dff)]">
-                    <CopyPlus size={22} />
+                  <div className="relative aspect-[1.42/0.8] overflow-hidden rounded-[10px] border border-white/8 bg-[#171717]">
+                    <div className="absolute left-[23%] top-[10%] h-[24%] w-[18%] rounded-[2px] bg-[#4a4a4a]" />
+                    <div className="absolute left-[20%] top-[43%] h-[21%] w-[18%] rounded-[2px] bg-[#4a4a4a]" />
+                    <div className="absolute left-[58%] top-[8%] h-[58%] w-[19%] rounded-[2px] bg-[#4a4a4a]" />
+                    <div className="absolute left-[38%] top-[48%] h-[2px] w-[23%] rounded-full bg-[#d7b31f]" />
+                    <div className="absolute right-5 top-4 text-[#d7d7d7]">
+                      <MoreHorizontal size={18} />
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[22px] font-[600]">
-                      {isCreatingSample ? 'Loading sample...' : 'Sample workflow'}
+                  <div className="mt-2">
+                    <div className="text-[16px] font-[600] tracking-[-0.02em] text-white">
+                      {isCreatingSample ? 'Loading sample...' : 'Untitled'}
                     </div>
-                    <div className="mt-2 text-[14px] text-[#a0a0a0]">
-                      Pre-built graph demonstrating uploads, crop, frame extraction, and LLM flow
-                    </div>
+                    <div className="mt-0.5 text-[13px] text-[#7e7e7e]">Edited 8 days ago</div>
                   </div>
                 </button>
 
-                {workflows.map((workflow) => (
-                  <Link
-                    key={workflow.id}
-                    href={`/nodes/${workflow.id}`}
-                    className="group block rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#181818,#111111)] p-6 transition-transform hover:-translate-y-[1px]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,#2c9bff,#0f67ff)]">
-                        <FolderKanban size={22} />
-                      </div>
-                      <button type="button" className="text-[#7a7a7a]">
+                {filteredWorkflows.map((workflow) => (
+                  <Link key={workflow.id} href={`/nodes/${workflow.id}`} className="group block">
+                    <div className="relative aspect-[1.42/0.8] overflow-hidden rounded-[10px] border border-white/8 bg-[#1b1b1b]">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_24%,rgba(255,255,255,0.12),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.08))]" />
+                      <div className="absolute left-[14%] top-[18%] h-[22%] w-[20%] rounded-[3px] bg-[#4a4a4a]" />
+                      <div className="absolute left-[14%] top-[50%] h-[18%] w-[20%] rounded-[3px] bg-[#4a4a4a]" />
+                      <div className="absolute right-[16%] top-[9%] h-[62%] w-[18%] rounded-[3px] bg-[#4a4a4a]" />
+                      <div className="absolute left-[34%] top-[54%] h-[2px] w-[28%] rounded-full bg-[#d7b31f]" />
+                      <div className="absolute right-5 top-4 text-[#d7d7d7]">
                         <MoreHorizontal size={18} />
-                      </button>
+                      </div>
                     </div>
-
-                    <div className="mt-14">
-                      <div className="text-[22px] font-[600] tracking-[-0.02em] text-white group-hover:text-white">
+                    <div className="mt-2">
+                      <div className="text-[16px] font-[600] tracking-[-0.02em] text-white">
                         {workflow.name}
                       </div>
-                      <div className="mt-3 flex items-center gap-3 text-[13px] text-[#8a8a8a]">
-                        <span>{workflow.nodes.length} nodes</span>
-                        <span>•</span>
-                        <span>{workflow.edges.length} edges</span>
-                      </div>
-                      <div className="mt-5 flex items-center gap-4 text-[12px] text-[#737373]">
-                        <span className="inline-flex items-center gap-1.5">
-                          <ImageIcon size={13} />
-                          {workflow.nodes.filter((node) => node.type === 'image').length}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Video size={13} />
-                          {workflow.nodes.filter((node) => node.type === 'video').length}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MonitorPlay size={13} />
-                          {workflow.nodes.filter((node) => node.type === 'llm').length}
-                        </span>
-                      </div>
-                      <div className="mt-6 text-[12px] uppercase tracking-[0.16em] text-[#666]">
-                        Updated {formatUpdatedAt(workflow.updatedAt)}
+                      <div className="mt-0.5 text-[13px] text-[#7e7e7e]">
+                        {formatEditedAgo(workflow.updatedAt)}
                       </div>
                     </div>
                   </Link>
